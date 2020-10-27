@@ -10,5 +10,9 @@ package map;
  * @author tienanh
  */
 public abstract class Map {
+
+	/**
+	 *
+	 */
 	public void draw (){}
 }

@@ -18,16 +18,28 @@ import javax.swing.Timer;
  * @author tienanh
  */
 public class Server {
-	
+
+	/**
+	 *
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
 			ServerSocket server = new ServerSocket(Consts.PORT);
 			System.out.println("Server is running ...");
-			// Listen on request
+			
+			// Init new Room
+			GamePlayThread gameplay = new GamePlayThread();
+			// Init new Thread for current room
+			gameplay.start();
 			while (true) {
 				Socket instance = server.accept();
-				System.out.println(instance);
-				
+				ClientThread player = new ClientThread(instance);
+				player.start();
+				gameplay.addPlayterToRoom(player);
+				if ( gameplay.isPlayAble() ) {
+					gameplay.startGame();
+				}
 			}
 		} catch (IOException ex) {
 			Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);

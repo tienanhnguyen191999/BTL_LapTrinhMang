@@ -16,9 +16,23 @@ import javax.swing.JPanel;
  * @author tienanh
  */
 public class Menu{
+
+	/**
+	 *
+	 */
 	public Menu() {
 	}
 
+	/**
+	 *
+	 * @param g
+	 * @param width
+	 * @param height
+	 * @param point_p1
+	 * @param point_p2
+	 * @param isPlay
+	 * @param isInitNewGame
+	 */
 	public void draw(Graphics g, int width, int height, int point_p1, int point_p2, boolean isPlay, boolean isInitNewGame){
 		// Point p2
 		g.setColor(Color.RED);

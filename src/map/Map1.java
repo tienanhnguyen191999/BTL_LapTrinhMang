@@ -1,5 +1,6 @@
 package map;
 
+import consts.Consts;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -27,23 +28,26 @@ public class Map1{
 	private int TOP = 1, RIGHT = 2, BOTTOM = 3, LEFT = 4;
 	public String[] translate = {"","TOP", "RIGHT", "BOTTOM", "LEFT"};
 	private int totalBrick;
-	private int widthBrick, heightBrick;
 	private int padding;
 	private Color colorBrick;
 	private Brick[] bricks;
 	private int gamePlayWidth, gameplayHeight;
+
+	/**
+	 *
+	 * @param width
+	 * @param height
+	 */
 	public Map1 (int width,int height) {
 		gamePlayWidth = width;
 		gameplayHeight = height;
-		widthBrick = 80;
-		heightBrick = 30;
 		padding = 10;
 		colorBrick = Color.YELLOW;
 		bricks = new Brick[3 * 12];
-		int totalBrickHeight = 3 * heightBrick + 2 * padding;
+		int totalBrickHeight = 3 * Consts.BRICK_HEIGHT + 2 * padding;
 		for (int i = 0 ; i < 3 ; i++) {
 			for (int j = 0; j < 12; j++){
-				Brick tmp = new Brick(widthBrick, heightBrick, 65 + j*widthBrick + j*padding, (gameplayHeight - totalBrickHeight )/ 2 + i*heightBrick + i*padding);
+				Brick tmp = new Brick(Consts.BRICK_WIDTH ,Consts.BRICK_HEIGHT, 65 + j * Consts.BRICK_WIDTH + j*padding, (gameplayHeight - totalBrickHeight )/ 2 + i*Consts.BRICK_HEIGHT + i*padding);
 //				if (j % 3 == 0 ) tmp.setIsDisplay(false);
 				bricks[i*12 + j] = tmp;
 			}
@@ -51,22 +55,19 @@ public class Map1{
 		}
 	}
 	
+	/**
+	 *
+	 * @return
+	 */
 	public boolean isNoBrickLeft () {
 		return bricks.length == 0;
 	}
 	
-	public void draw (Graphics g) {
-		for (int i = 0 ; i < 3 ; i++) {
-			for (int j = 0; j < 12; j++){
-				Brick curBrick = bricks[i*12 + j];
-				if ( curBrick.getIsDisplay()){
-					g.setColor(colorBrick);
-					g.fillRect(curBrick.getX(), curBrick.getY(), widthBrick, heightBrick);
-				}
-			}
-		}
-	}
-
+	/**
+	 *
+	 * @param ball
+	 * @return
+	 */
 	public int checkIntersectWithBrick (Ball ball) {
 		Rectangle rectball  = new Rectangle(ball.getX(), ball.getY(), ball.getRadius(), ball.getRadius());
 		for (int i = 0 ; i < 3 ; i++) {
@@ -97,6 +98,13 @@ public class Map1{
 	//	3 => bottom,
 	//	4 => left 
 	// ]
+
+	/**
+	 *
+	 * @param brick
+	 * @param ball
+	 * @return
+	 */
 	public int calculateBallIntersectSide (Brick brick, Ball ball) {
 		if ( ball.getSpeedX() > 0 ){
 			if (ball.getSpeedY() > 0 
@@ -152,5 +160,9 @@ public class Map1{
 			System.out.println("END LEVEL");
 		}
 		return -1;
+	}
+
+	public Brick[] getBricks() {
+		return bricks;
 	}
 }

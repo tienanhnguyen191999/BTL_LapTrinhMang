@@ -9,25 +9,34 @@ import java.net.Socket;
 import javax.swing.JFrame;
 import consts.Consts;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import consts.Consts;
 
 /**
  *
  * @author tienanh
  */
 public class Client {
+
+	/**
+	 *
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
+			// Socket 
 			Socket socket = new Socket(Consts.IP_HOST, Consts.PORT);
+			
+			// MainFrame
 			JFrame mainFrame = new JFrame("Brick Breaker");
-			mainFrame.setSize(1600, 1000);
+			mainFrame.setSize(Consts.SCREEN_WIDTH, Consts.SCREEN_HEIGHT);
 			mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			mainFrame.setLocationRelativeTo(null);
 			mainFrame.setVisible(true);
-			
-			GamePlay gamePlay = new GamePlay(1600, 1000);
+
+			// GamePlay
+			GamePlay gamePlay = new GamePlay(Consts.SCREEN_WIDTH, Consts.SCREEN_HEIGHT, socket);
 			mainFrame.add(gamePlay);
+			gamePlay.play();
 		} catch (IOException ex) {
 			System.out.println("Server not found.");
 		}
