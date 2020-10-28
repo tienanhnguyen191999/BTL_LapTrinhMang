@@ -10,15 +10,18 @@ import model.Ball;
 import model.Brick;
 import model.MapState;
 import consts.Consts;
+import model.MapInfo;
 /**
  *
  * @author tienanh
  */
 public abstract class Map {
 	protected MapState mapState;
+	protected MapInfo mapInfo;
 
 	public Map() {
 		mapState = new MapState();
+		mapInfo = new MapInfo();
 	}
 	
 	public boolean isNoBrickLeft () {
@@ -117,5 +120,13 @@ public abstract class Map {
 
 	public void setMapState(MapState mapState) {
 		this.mapState = mapState;
+	}
+
+	public MapInfo getMapInfo() {
+		return mapInfo;
+	}
+
+	public void setMapInfo(MapInfo mapInfo) {
+		this.mapInfo = mapInfo;
 	}
 }

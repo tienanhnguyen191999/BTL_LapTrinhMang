@@ -27,4 +27,6 @@ public class Consts {
 	public static int RIGHT = 2;
 	public static int BOTTOM = 3;
 	public static int LEFT = 4;
+	
+	public static int TOTAL_MAP = 10;
 }

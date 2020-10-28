@@ -5,11 +5,7 @@
  */
 package client.view;
 
-import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import model.ClientState;
 
@@ -19,12 +15,19 @@ import model.ClientState;
  */
 public class LAN extends javax.swing.JFrame {
 	private ClientState player;
+	private Socket socket;
 	/**
 	 * Creates new form LAN
 	 */
 	public LAN(ClientState player) {
 		this.player = player;
 		System.out.println(player);
+		initComponents();
+	}
+	
+	public LAN(Socket socket, ClientState player) {
+		this.player = player;
+		this.socket = socket;
 		initComponents();
 	}
 
@@ -348,22 +351,6 @@ public class LAN extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-//		if (this.player.getIP() == null) {
-//			String input = JOptionPane.showInputDialog(null, "IP HOST");
-//			String ip_pattern  = "\\d{3}\\.\\d{3}\\.\\d{1,3}\\.\\d{1,3}";
-//			//System.out.println(Pattern.matches(ip_pattern, input)); 
-//			if (Pattern.matches(ip_pattern, input)) {
-//				player.setIP(input);
-//				try {
-//					player.setSocket(new Socket(player.getIP(), consts.Consts.PORT));
-//				} catch (IOException ex) {
-//					JOptionPane.showMessageDialog(null, "This Host Not Available!!!");
-//				}
-//				return;
-//			}
-//			JOptionPane.showMessageDialog(null, "IP is nvalid ");
-//			return;
-//		}
 		String roomName = listRoom.getSelectedValue();
 		if (roomName == null) {
 			JOptionPane.showMessageDialog(null, "No Room Selected!!!");
@@ -390,7 +377,7 @@ public class LAN extends javax.swing.JFrame {
 			JOptionPane.showMessageDialog(null, "No Name Provived!!!");
 			return;
 		}
-		new CreateRoom(player).setVisible(true);
+		new CreateRoom(socket, player).setVisible(true);
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed

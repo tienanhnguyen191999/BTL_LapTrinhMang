@@ -187,9 +187,9 @@ public class Game extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		try {
 			ClientState player = new ClientState();
-//			player.setSocket(new Socket(consts.Consts.IP_HOST, consts.Consts.PORT));
+			Socket socket = new Socket(consts.Consts.IP_HOST, consts.Consts.PORT);
 			this.dispose();
-			new LAN(player).setVisible(true);
+			new LAN(socket, player).setVisible(true);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, "Server not found");
 		}

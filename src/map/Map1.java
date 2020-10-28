@@ -29,6 +29,8 @@ public class Map1 extends Map{
 	
 	public Map1 () {
 		super();
+		
+		// Map state
 		int padding = 10;
 		mapState.setBricks(new Brick[3 * 12]);
 		int totalBrickHeight = 3 * Consts.BRICK_HEIGHT + 2 * padding;
@@ -38,5 +40,10 @@ public class Map1 extends Map{
 				mapState.getBricks()[i*12 + j] = tmp;
 			}	
 		}
+		
+		// Map Info
+		mapInfo.setType("Small");
+		mapInfo.setDes("Des go here");
+		mapInfo.setImagePreviewPath("/data/mapPreview/map1.png");
 	}
 }

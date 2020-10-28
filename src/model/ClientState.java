@@ -73,13 +73,4 @@ public class ClientState implements Serializable{
 	public void setPoint(int point) {
 		this.point = point;
 	}
-
-	/**
-	 *
-	 * @return
-	 */
-	@Override
-	public String toString() {
-		return "\tBAR:  [" + bar.getX() + ", " + bar.getY() + "]" + "\n\tBALL: [" + ball.getX() + ", " + ball.getY() + "]\n";
-	}
 }

@@ -26,5 +26,10 @@ public class Map2 extends Map{
 				if ( j % 3 == 0 ) mapState.getBricks()[i*12 + j].setIsDisplay(false);
 			}	
 		}
+		
+		// Map Info
+		mapInfo.setType("Medium");
+		mapInfo.setDes("Fix this bois");
+		mapInfo.setImagePreviewPath("/data/mapPreview/map2.png");
 	}
 }
