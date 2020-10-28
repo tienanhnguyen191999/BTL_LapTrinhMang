@@ -15,6 +15,16 @@ public class ClientState implements Serializable{
 	private Ball ball;
 	private Bar bar;
 	private int point;
+	private String name;
+	public boolean isSocketClose;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	/**
 	 *

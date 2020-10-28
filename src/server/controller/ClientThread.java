@@ -24,17 +24,16 @@ import model.ClientState;
  */
 public class ClientThread extends Thread{
 	private ClientState state;
-	private DataOutputStream output;
-	private DataInputStream input;
+	
+	private Socket socket;
 	private ObjectOutputStream objectOutput;
 	private ObjectInputStream objectInput;
-	private Socket socket;
 	
 	public ClientThread(Socket socket) {
 		try {
 			this.socket = socket;
+			state = new ClientState();
 			objectOutput = new ObjectOutputStream(socket.getOutputStream());
-			objectOutput.flush();
 			objectInput = new ObjectInputStream(socket.getInputStream());
 		} catch (IOException ex) {
 			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -43,8 +42,7 @@ public class ClientThread extends Thread{
 	
 	@Override
 	public void run() {
-		Thread.currentThread().getName();
-		while(true){
+		while(!state.isSocketClose){
 			try {
 				Integer keycode  = (Integer)objectInput.readObject();
 				switch (keycode) {
@@ -70,7 +68,7 @@ public class ClientThread extends Thread{
 						break;
 				}
 			} catch (IOException ex) {
-				Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+				state.isSocketClose = true;
 			} catch (ClassNotFoundException ex) {
 				Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
 			}
@@ -141,22 +139,6 @@ public class ClientThread extends Thread{
 
 	/**
 	 *
-	 * @param output
-	 */
-	public void setOutput(DataOutputStream output) {
-		this.output = output;
-	}
-
-	/**
-	 *
-	 * @param input
-	 */
-	public void setInput(DataInputStream input) {
-		this.input = input;
-	}
-
-	/**
-	 *
 	 * @param socket
 	 */
 	public void setSocket(Socket socket) {
@@ -170,20 +152,5 @@ public class ClientThread extends Thread{
 	public Socket getSocket() {
 		return socket;
 	}
-	
-	/**
-	 *
-	 * @return
-	 */
-	public DataOutputStream getOutput () {
-		return output;
-	}
-	
-	/**
-	 *
-	 * @return
-	 */
-	public DataInputStream getInput () {
-		return input;
-	}
+
 }

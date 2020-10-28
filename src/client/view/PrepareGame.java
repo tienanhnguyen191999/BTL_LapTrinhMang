@@ -5,16 +5,23 @@
  */
 package client.view;
 
+import model.ClientState;
+
 /**
  *
  * @author tienanh
  */
 public class PrepareGame extends javax.swing.JFrame {
-
-	/**
-	 * Creates new form PrepareGame
-	 */
-	public PrepareGame() {
+	private ClientState p1; //host
+	private ClientState p2; 
+	public PrepareGame(ClientState player, boolean isHost) {
+		if (isHost) {
+			p1 = player;
+		}
+		else{
+			p2 = player;
+		}
+		System.out.println(player);
 		initComponents();
 	}
 
@@ -381,8 +388,8 @@ public class PrepareGame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-		this.dispose();
-		new LAN().setVisible(true);
+		this.dispose();		
+		new LAN(p1).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jComboBox3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox3ActionPerformed

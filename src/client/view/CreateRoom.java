@@ -5,17 +5,19 @@
  */
 package client.view;
 
+import model.ClientState;
+
 /**
  *
  * @author tienanh
  */
 public class CreateRoom extends javax.swing.JFrame {
-
-	/**
-	 * Creates new form CreateRoom
-	 */
-	public CreateRoom() {
+	private ClientState player;
+	public CreateRoom(ClientState player) {
+		this.player = player;
+		System.out.println(player);
 		initComponents();
+		
 	}
 
 	/**
@@ -297,12 +299,14 @@ public class CreateRoom extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-		new PrepareGame().setVisible(true);
+		// Set this user to be HOST
+		
+		new PrepareGame(player, true).setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		this.dispose();
-		new LAN().setVisible(true);
+		new LAN(player).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

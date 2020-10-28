@@ -5,10 +5,16 @@
  */
 package client.view;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import java.util.regex.Pattern;
+import model.ClientState;
 /**
- *
+ 
  * @author tienanh
  */
 public class Game extends javax.swing.JFrame {
@@ -179,8 +185,14 @@ public class Game extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        this.dispose();
-		new LAN().setVisible(true);
+		try {
+			ClientState player = new ClientState();
+//			player.setSocket(new Socket(consts.Consts.IP_HOST, consts.Consts.PORT));
+			this.dispose();
+			new LAN(player).setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, "Server not found");
+		}
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

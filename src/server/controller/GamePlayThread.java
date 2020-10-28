@@ -6,21 +6,17 @@
 package server.controller;
 
 import javax.swing.Timer;
-import map.Map1;
 import model.Ball;
 import model.Bar;
-import consts.Consts;
-import java.awt.Color;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.ClientState;
 import consts.Consts;
+import map.*;
 
 /**
  *
@@ -28,11 +24,10 @@ import consts.Consts;
  * 2 socket connection required
  */
 public class GamePlayThread extends Thread{
-	private int width, height, padding = 50;
-	private int menuWidth, menuHeight;
-	private int delayTime = 20;
+	private int padding = 50;
+	private int delayTime = 50;
 	private boolean isPlay, isGameOver, isInitNewGame;
-	private Map1 map;
+	private Map map;
 	
 	private ArrayList<ClientThread> arr_player;
 	private int times = 0;
@@ -40,10 +35,6 @@ public class GamePlayThread extends Thread{
 	
 	GamePlayThread () {
 		arr_player = new ArrayList<ClientThread>();
-		this.width = Consts.SCREEN_WIDTH * 3/4;
-		this.height = Consts.SCREEN_HEIGHT;
-		this.menuWidth = Consts.SCREEN_WIDTH * 1/4;
-		this.menuHeight = Consts.SCREEN_HEIGHT;
 	}
 	
 	public void initNewGame (){
@@ -51,22 +42,23 @@ public class GamePlayThread extends Thread{
 		isInitNewGame = true;
 		
 		// Init new Map
-		map = new Map1(width, height);
+		map = new Map3();
 		timer = new Timer(delayTime, handleRerenderEachTime());
 		
 		// Init new player state
 		boolean isPlayer_1 = true;
 		for (ClientThread client : arr_player){
-			client.setClientState(new ClientState());
 			client.getClientState().setPoint(0);
 			if (isPlayer_1){
 				// Init ball and bar
 				isPlayer_1 = false;
-				client.getClientState().setBar(new Bar(200, 20, 20,  this.width/2 - 200/2, this.height - 20 - padding));
-				client.getClientState().setBall(new Ball(30, -1, -1, this.width/2 - 30/2, this.height - padding - client.getClientState().getBar().getHeight() - 30));
+				client.getClientState().setName("TienAnh");
+				client.getClientState().setBar(new Bar(200, 20, 20,  Consts.GAMPLAY_WIDTH/2 - 200/2, Consts.GAMPLAY_HEIGHT - 20 - padding));
+				client.getClientState().setBall(new Ball(30, -1, -1, Consts.GAMPLAY_WIDTH/2 - 30/2, Consts.GAMPLAY_HEIGHT - padding - client.getClientState().getBar().getHeight() - 30));
 			}else {
-				client.getClientState().setBar(new Bar(200, 20, 20,  this.width/2 - 200/2, padding - 20 ));
-				client.getClientState().setBall(new Ball(30, 1, 1, this.width/2 - 30/2, padding));
+				client.getClientState().setName("ThanhTrung");
+				client.getClientState().setBar(new Bar(200, 20, 20,  Consts.GAMPLAY_WIDTH/2 - 200/2, padding - 20 ));
+				client.getClientState().setBall(new Ball(30, 1, 1, Consts.GAMPLAY_WIDTH/2 - 30/2, padding));
 			}
 			
 		}
@@ -77,17 +69,28 @@ public class GamePlayThread extends Thread{
 	 * @return
 	 */
 	public ActionListener handleRerenderEachTime () {
-		for (ClientThread player : arr_player){
-			if (player.getSocket().isClosed()){
-				isPlay = false;
-				timer.stop();
-			}
-		}
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-//				System.out.println("isPlay: " + isPlay);
-//				System.out.println("ISGAMEOVER: " + isGameOver);
+				int index = 0;
+				for (ClientThread player : arr_player){
+					if (player.getClientState().isSocketClose){
+						try {
+							ClientThread connectedPlayer = arr_player.get(index == 0 ? 1 : 0);
+							// Set "lost connection" to other player
+							connectedPlayer.getObjectOutput().reset();
+							connectedPlayer.getObjectOutput().writeObject(arr_player.get(0).getClientState());
+							connectedPlayer.getObjectOutput().writeObject(arr_player.get(1).getClientState());
+							connectedPlayer.getObjectOutput().writeObject(map.getMapState());
+						} catch (IOException ex) {
+
+						}
+						isPlay = false;
+						timer.stop();
+					}
+					index++;
+				}
+
 				if (isPlay){
 					// Update ball move
 					for (ClientThread player : arr_player){
@@ -106,10 +109,9 @@ public class GamePlayThread extends Thread{
 							player.getObjectOutput().reset();
 							player.getObjectOutput().writeObject(arr_player.get(0).getClientState());
 							player.getObjectOutput().writeObject(arr_player.get(1).getClientState());
-							player.getObjectOutput().writeObject(map.getBricks());
-							System.out.println(player.getName() + ":\n " + player.getClientState());
+							player.getObjectOutput().writeObject(map.getMapState());
 						} catch (IOException ex) {
-							Logger.getLogger(GamePlayThread.class.getName()).log(Level.SEVERE, null, ex);
+							player.getClientState().isSocketClose = true;
 						}
 					}
 				}
@@ -200,8 +202,8 @@ public class GamePlayThread extends Thread{
 				   return 1;
 			}
 			// Bottom edge
-			if ( ball.getY() + ball.getRadius() >= height ){
-				ball.setY(height - ball.getRadius());
+			if ( ball.getY() + ball.getRadius() >= Consts.GAMPLAY_HEIGHT ){
+				ball.setY(Consts.GAMPLAY_HEIGHT - ball.getRadius());
 				return 3;
 			}
 		}
@@ -213,8 +215,8 @@ public class GamePlayThread extends Thread{
 		}
 		
 		// Right edge
-		if ( ball.getX() + ball.getRadius() >= width ){
-			ball.setX(width - ball.getRadius());
+		if ( ball.getX() + ball.getRadius() >= Consts.GAMPLAY_WIDTH ){
+			ball.setX(Consts.GAMPLAY_WIDTH - ball.getRadius());
 			return 2;
 		}
 		// no collision
@@ -222,7 +224,7 @@ public class GamePlayThread extends Thread{
 	}
 	
 	private void checkGameOver (ClientState player, boolean isBarOnBottom) {
-		if (isBarOnBottom && player.getBall().getY() >= height - player.getBar().getHeight() - padding + 1) {
+		if (isBarOnBottom && player.getBall().getY() >= Consts.GAMPLAY_HEIGHT - player.getBar().getHeight() - padding + 1) {
 			isGameOver = true;
 			isPlay = false;
 			return;
@@ -248,9 +250,6 @@ public class GamePlayThread extends Thread{
 		}
 	}
 	
-	/**
-	 *
-	 */
 	@Override
 	public void run() {	
 	}

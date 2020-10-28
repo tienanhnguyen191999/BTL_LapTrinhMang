@@ -5,18 +5,26 @@
  */
 package client.view;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
+import model.ClientState;
 
 /**
  *
  * @author tienanh
  */
 public class LAN extends javax.swing.JFrame {
-
+	private ClientState player;
 	/**
 	 * Creates new form LAN
 	 */
-	public LAN() {
+	public LAN(ClientState player) {
+		this.player = player;
+		System.out.println(player);
 		initComponents();
 	}
 
@@ -67,6 +75,23 @@ public class LAN extends javax.swing.JFrame {
 
         jLabel3.setForeground(new java.awt.Color(254, 254, 254));
         jLabel3.setText("Player Name");
+
+        playerName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                playerNameActionPerformed(evt);
+            }
+        });
+        playerName.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                playerNameKeyTyped(evt);
+            }
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                playerNameKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                playerNameKeyReleased(evt);
+            }
+        });
 
         jLabel4.setText("Games");
 
@@ -323,7 +348,22 @@ public class LAN extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-		
+//		if (this.player.getIP() == null) {
+//			String input = JOptionPane.showInputDialog(null, "IP HOST");
+//			String ip_pattern  = "\\d{3}\\.\\d{3}\\.\\d{1,3}\\.\\d{1,3}";
+//			//System.out.println(Pattern.matches(ip_pattern, input)); 
+//			if (Pattern.matches(ip_pattern, input)) {
+//				player.setIP(input);
+//				try {
+//					player.setSocket(new Socket(player.getIP(), consts.Consts.PORT));
+//				} catch (IOException ex) {
+//					JOptionPane.showMessageDialog(null, "This Host Not Available!!!");
+//				}
+//				return;
+//			}
+//			JOptionPane.showMessageDialog(null, "IP is nvalid ");
+//			return;
+//		}
 		String roomName = listRoom.getSelectedValue();
 		if (roomName == null) {
 			JOptionPane.showMessageDialog(null, "No Room Selected!!!");
@@ -336,8 +376,7 @@ public class LAN extends javax.swing.JFrame {
 		
 		this.dispose();
 		System.out.println("JOIN ROOM: " + roomName);
-		new PrepareGame().setVisible(true);
-		
+		new PrepareGame(player, false).setVisible(true);
 		
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -347,12 +386,32 @@ public class LAN extends javax.swing.JFrame {
     }//GEN-LAST:event_exitBtnActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-		new CreateRoom().setVisible(true);
+		if (playerName.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "No Name Provived!!!");
+			return;
+		}
+		new CreateRoom(player).setVisible(true);
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
 		JOptionPane.showMessageDialog(null, "Feature in progress");
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void playerNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playerNameActionPerformed
+		
+    }//GEN-LAST:event_playerNameActionPerformed
+
+    private void playerNameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_playerNameKeyPressed
+        
+    }//GEN-LAST:event_playerNameKeyPressed
+
+    private void playerNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_playerNameKeyTyped
+		
+    }//GEN-LAST:event_playerNameKeyTyped
+
+    private void playerNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_playerNameKeyReleased
+        player.setName(playerName.getText());
+    }//GEN-LAST:event_playerNameKeyReleased
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton exitBtn;
