@@ -9,40 +9,56 @@ import java.net.ServerSocket;
 import consts.Consts;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Timer;
+import model.Room;
 
 /**
  *
  * @author tienanh
  */
 public class Server {
-
-	/**
-	 *
-	 * @param args
-	 */
-	public static void main(String[] args) {
+	private ArrayList<Room> listRoom;
+	ServerSocket server;
+		
+	
+	public Server () {
 		try {
-			ServerSocket server = new ServerSocket(Consts.PORT);
+			server = new ServerSocket(Consts.PORT);
 			System.out.println("Server is running ...");
-			
-			// Init new Room
-			GamePlayThread gameplay = new GamePlayThread();
-			// Init new Thread for current room
-			gameplay.start();
-			while (true) {
+		} catch (IOException ex) {
+			Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	// Main Thread
+	public static void main(String[] args) {
+		Server serverClass = new Server();
+		serverClass.listening();
+	}
+	
+	public void listening () {
+		while (true) {
+			try {
 				Socket instance = server.accept();
 				ClientThread player = new ClientThread(instance);
 				player.start();
-				gameplay.addPlayterToRoom(player);
-				if ( gameplay.isPlayAble() ) {
-					gameplay.startGame();
-				}
+				
+				
+//				// Init new Room
+//				GamePlayThread gameplay = new GamePlayThread();
+//				// Init new Thread for current room
+//				gameplay.start();
+//				gameplay.addPlayterToRoom(player);
+//				if ( gameplay.isPlayAble() ) {
+//					gameplay.startGame();
+//				}
+				
+			} catch (IOException ex) {
+				Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
 			}
-		} catch (IOException ex) {
-			Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
 }

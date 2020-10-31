@@ -42,6 +42,10 @@ public class ClientThread extends Thread{
 	
 	@Override
 	public void run() {
+		
+	}
+
+	public void listenOnBarMoveGamePlay(){
 		while(!state.isSocketClose){
 			try {
 				Integer keycode  = (Integer)objectInput.readObject();
@@ -75,80 +79,38 @@ public class ClientThread extends Thread{
 		}
 	}
 
-	/**
-	 *
-	 * @param objectOutput
-	 */
 	public void setObjectOutput(ObjectOutputStream objectOutput) {
 		this.objectOutput = objectOutput;
 	}
 
-	/**
-	 *
-	 * @param objectInput
-	 */
 	public void setObjectInput(ObjectInputStream objectInput) {
 		this.objectInput = objectInput;
 	}
 
-	/**
-	 *
-	 * @param state
-	 */
 	public void setClientState(ClientState state) {
 		this.state = state;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public ClientState getClientState() {
 		return state;
 	}
 	
-	/**
-	 *
-	 * @return
-	 */
 	public boolean isClosed() {
 		return socket.isClosed();
 	}
 
-	/**
-	 *
-	 * @param socket
-	 */
-	
-
-	/**
-	 *
-	 * @return
-	 */
 	public ObjectOutputStream getObjectOutput() {
 		return objectOutput;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public ObjectInputStream getObjectInput() {
 		return objectInput;
 	}
 
-	/**
-	 *
-	 * @param socket
-	 */
 	public void setSocket(Socket socket) {
 		this.socket = socket;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public Socket getSocket() {
 		return socket;
 	}

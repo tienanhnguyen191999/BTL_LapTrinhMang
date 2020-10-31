@@ -47,5 +47,7 @@ public class MapInfo {
 		this.des = des;
 	}
 	
-	
+	public String getClassName (){
+		return "map."+this.name;
+	}
 }
