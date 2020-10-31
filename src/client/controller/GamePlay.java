@@ -204,6 +204,9 @@ public class GamePlay extends JPanel{
 					validKeyCode.add(KeyEvent.VK_RIGHT);
 					validKeyCode.add(KeyEvent.VK_ENTER);
 					if (validKeyCode.contains(ke.getKeyCode())){
+                        // Action Code
+                        out.writeObject(Consts.BAR_MOVE);
+                        // Send data
 						out.writeObject(ke.getKeyCode());
 					}
 				} catch (Exception ex) {

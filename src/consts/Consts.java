@@ -10,23 +10,35 @@ package consts;
  * @author tienanh
  */
 public class Consts {
-	public static int PORT = 1107;
-	public static String IP_HOST = "localhost";
-	public static int MAX_PLAYER = 2;
+	public static final int PORT = 1107;
+	public static final String IP_HOST = "localhost";
+	public static final int MAX_PLAYER = 2;
 	
-	public static int SCREEN_WIDTH = 1600;
-	public static int SCREEN_HEIGHT = 800;
+	public static final int SCREEN_WIDTH = 1600;
+	public static final int SCREEN_HEIGHT = 800;
 	
-	public static int GAMPLAY_WIDTH = 1200;
-	public static int GAMPLAY_HEIGHT = 800;
+	public static final int GAMPLAY_WIDTH = 1200;
+	public static final int GAMPLAY_HEIGHT = 800;
 	
-	public static int BRICK_WIDTH = 80;
-	public static int BRICK_HEIGHT = 30;
+	public static final int BRICK_WIDTH = 80;
+	public static final int BRICK_HEIGHT = 30;
 	
-	public static int TOP = 1;
-	public static int RIGHT = 2;
-	public static int BOTTOM = 3;
-	public static int LEFT = 4;
+	public static final int TOP = 1;
+	public static final int RIGHT = 2;
+	public static final int BOTTOM = 3;
+	public static final int LEFT = 4;
 	
-	public static int TOTAL_MAP = 10;
+	public static final int TOTAL_MAP = 10;
+    
+    // For thread Listening action
+    public static final int CREATE_ROOM_CODE = 1;
+    public static final int BAR_MOVE = 2;
+    
+    // Room Status
+    public static final int WAITING = 1;
+    public static final int PLAY = 2;
+    public static final int STOP = 3;
+    public static final int PAUSE = 4;
 }
+
+

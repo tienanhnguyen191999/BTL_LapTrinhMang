@@ -4,6 +4,7 @@ import consts.Consts;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.io.Serializable;
 import model.Ball;
 import model.Brick;
 import model.MapState;
@@ -25,7 +26,7 @@ import model.MapState;
 	********** 1000
 	**********
 */
-public class Map1 extends Map{
+public class Map1 extends Map implements Serializable{
 	
 	public Map1 () {
 		super();

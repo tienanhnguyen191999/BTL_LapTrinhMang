@@ -5,8 +5,10 @@
  */
 package client.view;
 
+import consts.Consts;
 import java.awt.Image;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -28,6 +30,7 @@ public class CreateRoom extends javax.swing.JFrame {
 	private ClientState player;
 	private Socket socket;
 	private ArrayList<Map> mapsData;
+    private Map selectedMap;
 	public CreateRoom(ClientState player) {
 		this.player = player;
 		System.out.println(player);
@@ -320,9 +323,25 @@ public class CreateRoom extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-		// Set this user to be HOST
-		
-		new PrepareGame(player, true).setVisible(true);
+		ObjectOutputStream out = null;
+        try {
+            out = new ObjectOutputStream(socket.getOutputStream());
+            // 1. Send Action_Code
+            out.writeObject(Consts.CREATE_ROOM_CODE);
+            // 2. Send Data
+            out.writeObject(player);
+            out.writeObject(selectedMap);
+            
+            new PrepareGame(player, true).setVisible(true);
+        } catch (IOException ex) {
+            Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                out.close();
+            } catch (IOException ex) {
+                Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
 	private void registerMapListEvent() {
@@ -334,14 +353,15 @@ public class CreateRoom extends javax.swing.JFrame {
 						String mapName = mapList.getSelectedValue().trim();
 						System.out.println(mapName);
 						Class<?> clazz = Class.forName("map." + mapName);
-						Map map = (Map) clazz.newInstance();
-						
-						ImageIcon icon = new ImageIcon(getClass().getResource(map.getMapInfo().getImagePreviewPath())); 
+						selectedMap = (Map) clazz.newInstance();
+                        
+						ImageIcon icon = new ImageIcon(getClass().getResource(selectedMap.getMapInfo().getImagePreviewPath())); 
 						Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
 						ImageIcon result = new ImageIcon(resize);
 						imagePreview.setIcon(result);
-						mapSizeField.setText(map.getMapInfo().getType());
-						mapDesField.setText(map.getMapInfo().getDes());
+						mapSizeField.setText(selectedMap.getMapInfo().getType());
+						mapDesField.setText(selectedMap.getMapInfo().getDes());
+                        
 					} catch (ClassNotFoundException ex) {
 						Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
 					} catch (InstantiationException ex) {

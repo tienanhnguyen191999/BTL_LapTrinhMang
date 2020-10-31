@@ -5,11 +5,13 @@
  */
 package model;
 
+import java.io.Serializable;
+
 /**
  *
  * @author tienanh
  */
-public class MapInfo {
+public class MapInfo implements Serializable{
 	private String name;
 	private String imagePreviewPath;
 	private String type;

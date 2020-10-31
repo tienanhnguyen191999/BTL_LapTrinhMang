@@ -10,12 +10,13 @@ import model.Ball;
 import model.Brick;
 import model.MapState;
 import consts.Consts;
+import java.io.Serializable;
 import model.MapInfo;
 /**
  *
  * @author tienanh
  */
-public abstract class Map {
+public abstract class Map implements Serializable{
 	protected MapState mapState;
 	protected MapInfo mapInfo;
 
