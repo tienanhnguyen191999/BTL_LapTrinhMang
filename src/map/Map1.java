@@ -4,6 +4,7 @@ import consts.Consts;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.io.Serializable;
 import model.Ball;
 import model.Brick;
 import model.MapState;
@@ -25,10 +26,12 @@ import model.MapState;
 	********** 1000
 	**********
 */
-public class Map1 extends Map{
+public class Map1 extends Map implements Serializable{
 	
 	public Map1 () {
 		super();
+		
+		// Map state
 		int padding = 10;
 		mapState.setBricks(new Brick[3 * 12]);
 		int totalBrickHeight = 3 * Consts.BRICK_HEIGHT + 2 * padding;
@@ -38,5 +41,10 @@ public class Map1 extends Map{
 				mapState.getBricks()[i*12 + j] = tmp;
 			}	
 		}
+		
+		// Map Info
+		mapInfo.setType("Small");
+		mapInfo.setDes("Des go here");
+		mapInfo.setImagePreviewPath("/data/mapPreview/map1.png");
 	}
 }

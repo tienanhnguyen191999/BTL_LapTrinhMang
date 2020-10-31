@@ -6,13 +6,14 @@
 package map;
 
 import consts.Consts;
+import java.io.Serializable;
 import model.Brick;
 
 /**
  *
  * @author tienanh
  */
-public class Map9 extends Map{
+public class Map9 extends Map implements Serializable{
 	public Map9() {
 		super();
 		int padding = 10;
