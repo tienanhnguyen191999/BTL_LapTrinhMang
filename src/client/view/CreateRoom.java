@@ -8,6 +8,7 @@ package client.view;
 import consts.Consts;
 import java.awt.Image;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -16,11 +17,14 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.ListModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import map.Map;
 import model.ClientState;
+import model.Room;
+import model.SocketIO;
 
 /**
  *
@@ -28,20 +32,15 @@ import model.ClientState;
  */
 public class CreateRoom extends javax.swing.JFrame {
 	private ClientState player;
-	private Socket socket;
+	private SocketIO socketIO;
 	private ArrayList<Map> mapsData;
     private Map selectedMap;
-	public CreateRoom(ClientState player) {
-		this.player = player;
-		System.out.println(player);
-		initComponents();
-	}
 	
-	public CreateRoom(Socket socket, ClientState player) {
-		this.player = player;
-		this.socket = socket;		
-		initComponents();
-		initMapData();
+	public CreateRoom(SocketIO socketIO, ClientState player) {
+        this.player = player;
+        this.socketIO = socketIO;
+        initComponents();
+        initMapData();
 	}
 	
 	public void initMapData(){
@@ -66,6 +65,7 @@ public class CreateRoom extends javax.swing.JFrame {
 		}
 		
 		mapList.setModel(listMapStr);
+        System.out.println("IN2");
 		registerMapListEvent();
 	}
 
@@ -84,11 +84,14 @@ public class CreateRoom extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
-        jSlider1 = new javax.swing.JSlider();
+        rangeSpeed = new javax.swing.JSlider();
         jLabel4 = new javax.swing.JLabel();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         mapList = new javax.swing.JList<>();
+        jLabel1 = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        tfRoomName = new javax.swing.JTextField();
         jPanel3 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
@@ -112,19 +115,25 @@ public class CreateRoom extends javax.swing.JFrame {
 
         jLabel3.setText("Game Speed");
 
-        jSlider1.setOpaque(true);
+        rangeSpeed.setMaximum(10);
+        rangeSpeed.setToolTipText("");
+        rangeSpeed.setValue(5);
+        rangeSpeed.setOpaque(true);
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSlider1, javax.swing.GroupLayout.DEFAULT_SIZE, 632, Short.MAX_VALUE)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(rangeSpeed, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addComponent(rangeSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 12, Short.MAX_VALUE))
         );
 
         jLabel4.setText("Select Map");
@@ -137,15 +146,34 @@ public class CreateRoom extends javax.swing.JFrame {
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 608, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane1)
+                .addContainerGap())
+        );
+
+        jLabel1.setText("Room Name");
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(tfRoomName)
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(tfRoomName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -156,13 +184,15 @@ public class CreateRoom extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
                             .addComponent(jLabel3)
+                            .addComponent(jLabel1)
                             .addComponent(jLabel4))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 481, Short.MAX_VALUE))
+                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -170,9 +200,13 @@ public class CreateRoom extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel4)
@@ -299,11 +333,12 @@ public class CreateRoom extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(18, 18, 18)
-                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -323,24 +358,33 @@ public class CreateRoom extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-		ObjectOutputStream out = null;
         try {
-            out = new ObjectOutputStream(socket.getOutputStream());
-            // 1. Send Action_Code
-            out.writeObject(Consts.CREATE_ROOM_CODE);
-            // 2. Send Data
-            out.writeObject(player);
-            out.writeObject(selectedMap);
-            
-            new PrepareGame(player, true).setVisible(true);
-        } catch (IOException ex) {
-            Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                out.close();
-            } catch (IOException ex) {
-                Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
+            if (tfRoomName.getText().isEmpty()){
+                JOptionPane.showMessageDialog(null, "Room Name Required");
+                return;
             }
+            // 1. Send Action_Code
+            socketIO.getOutput().writeObject(Consts.CREATE_ROOM_CODE);
+            // 2. Send Data
+            Room newRoom = new Room();
+            newRoom.setP1(player);
+            newRoom.setMap(selectedMap);
+            newRoom.setName(tfRoomName.getText().trim());
+            newRoom.setSpeed(rangeSpeed.getValue());
+            socketIO.getOutput().writeObject(newRoom);
+            // Check if room name is register
+            boolean isRoomNameUnique = (boolean)socketIO.getInput().readObject();
+            if (isRoomNameUnique){
+                this.dispose();
+                new PrepareGame(socketIO, newRoom, true).setVisible(true);
+            }else{
+                JOptionPane.showMessageDialog(null, "Room Name is Registered");
+                return;
+            }
+        } catch (IOException ex) { 
+            Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -369,52 +413,21 @@ public class CreateRoom extends javax.swing.JFrame {
 					} catch (IllegalAccessException ex) {
 						Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
 					}
-					
                 }
             }
         });
 	}
 	
-	public static void main(String[] args) {
-		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					javax.swing.UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (ClassNotFoundException ex) {
-			java.util.logging.Logger.getLogger(Game.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (InstantiationException ex) {
-			java.util.logging.Logger.getLogger(Game.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (IllegalAccessException ex) {
-			java.util.logging.Logger.getLogger(Game.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
-			java.util.logging.Logger.getLogger(Game.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		}
-		
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ClientState player = new ClientState();
-					Socket socket = new Socket(consts.Consts.IP_HOST, consts.Consts.PORT);
-					new CreateRoom(socket, player).setVisible(true);
-				} catch (IOException ex) {
-					Logger.getLogger(CreateRoom.class.getName()).log(Level.SEVERE, null, ex);
-				}
-			}
-		});
-	}
-	
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		this.dispose();
-		new LAN(player).setVisible(true);
+		new LAN(socketIO, player).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel imagePreview;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -425,14 +438,17 @@ public class CreateRoom extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JSlider jSlider1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextArea mapDesField;
     private javax.swing.JList<String> mapList;
     private javax.swing.JTextField mapSizeField;
+    private javax.swing.JSlider rangeSpeed;
+    private javax.swing.JTextField tfRoomName;
     // End of variables declaration//GEN-END:variables
 }
+

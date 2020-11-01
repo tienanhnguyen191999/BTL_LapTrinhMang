@@ -6,13 +6,12 @@
 package client.view;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import java.util.regex.Pattern;
 import model.ClientState;
+import model.SocketIO;
 /**
  
  * @author tienanh
@@ -185,16 +184,30 @@ public class Game extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-		try {
-			ClientState player = new ClientState();
-			Socket socket = new Socket(consts.Consts.IP_HOST, consts.Consts.PORT);
-			this.dispose();
-			new LAN(socket, player).setVisible(true);
-		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(null, "Server not found");
-		}
+        ClientState player = new ClientState();
+        SocketIO socketIO = this.initSocketIO();
+        new LAN(socketIO, player).setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    private SocketIO initSocketIO(){
+        try {
+            System.out.println("1");
+            SocketIO socketIO = new SocketIO();
+            Socket socket = new Socket(consts.Consts.IP_HOST, consts.Consts.PORT);
+            socketIO.setSocket(socket);
+            System.out.println("1");
+            socketIO.setOutput(new ObjectOutputStream(socket.getOutputStream()));
+            socketIO.setInput(new ObjectInputStream(socket.getInputStream()));
+            
+            System.out.println("1");
+            return socketIO;
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Server not found");
+        }
+        return null;
+    }
+    
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed

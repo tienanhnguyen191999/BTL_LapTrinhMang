@@ -5,9 +5,24 @@
  */
 package client.view;
 
+import consts.Consts;
+import java.awt.Image;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import map.Map;
 import model.ClientState;
+import model.Room;
+import model.SocketIO;
 
 /**
  *
@@ -15,22 +30,36 @@ import model.ClientState;
  */
 public class LAN extends javax.swing.JFrame {
 	private ClientState player;
-	private Socket socket;
-	/**
-	 * Creates new form LAN
-	 */
-	public LAN(ClientState player) {
-		this.player = player;
-		System.out.println(player);
-		initComponents();
-	}
+    private ArrayList<Room> listRoomWaiting;
+    private Room selectedRoom;
+	private SocketIO socketIO;
 	
-	public LAN(Socket socket, ClientState player) {
-		this.player = player;
-		this.socket = socket;
-		initComponents();
+	public LAN(SocketIO socketIO, ClientState player) {
+        this.player = player;
+        this.socketIO = socketIO;
+        initComponents();
+        initMapData();
 	}
 
+    public void initMapData(){
+        try {
+            socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
+            listRoomWaiting = (ArrayList<Room>)socketIO.getInput().readObject();
+            DefaultListModel listMapStr = new DefaultListModel();
+            
+            for (Room room : listRoomWaiting){
+                listMapStr.addElement(room.getName());
+            }
+            
+            jlistRoomWaiting.setModel(listMapStr);
+            this.registerMapListEvent();
+        } catch (IOException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+    }
+    
 	/**
 	 * This method is called from within the constructor to initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is always
@@ -47,16 +76,18 @@ public class LAN extends javax.swing.JFrame {
         playerName = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        listRoom = new javax.swing.JList<>();
+        jlistRoomWaiting = new javax.swing.JList<>();
         jPanel2 = new javax.swing.JPanel();
-        jPanel6 = new javax.swing.JPanel();
-        jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
+        tfRoomName = new javax.swing.JTextField();
+        tfRoomCreator = new javax.swing.JTextField();
+        tfRoomSpeed = new javax.swing.JTextField();
+        imagePreview = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        tfRoomDes = new javax.swing.JTextArea();
         jPanel3 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jButton3 = new javax.swing.JButton();
@@ -98,13 +129,8 @@ public class LAN extends javax.swing.JFrame {
 
         jLabel4.setText("Games");
 
-        listRoom.setBackground(new java.awt.Color(117, 117, 117));
-        listRoom.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
-        jScrollPane1.setViewportView(listRoom);
+        jlistRoomWaiting.setBackground(new java.awt.Color(117, 117, 117));
+        jScrollPane1.setViewportView(jlistRoomWaiting);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -145,41 +171,29 @@ public class LAN extends javax.swing.JFrame {
 
         jPanel2.setBackground(new java.awt.Color(226, 199, 172));
 
-        jLabel5.setFont(new java.awt.Font("Ubuntu", 0, 8)); // NOI18N
-        jLabel5.setText("*Preview Map Here*");
-
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
-        jPanel6.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addComponent(jLabel5)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(40, 40, 40)
-                .addComponent(jLabel5)
-                .addContainerGap(95, Short.MAX_VALUE))
-        );
-
         jLabel6.setText("Map Name:");
 
-        jLabel7.setText("Game Creator:");
+        jLabel7.setText("Room Creator:");
 
         jLabel8.setText("GameSpeed:");
 
-        jTextField2.setEditable(false);
-        jTextField2.setText("Map 1");
-        jTextField2.setOpaque(false);
+        tfRoomName.setEditable(false);
+        tfRoomName.setOpaque(false);
 
-        jTextField3.setEditable(false);
-        jTextField3.setText("Tanker");
+        tfRoomCreator.setEditable(false);
 
-        jTextField4.setEditable(false);
-        jTextField4.setText("8");
+        tfRoomSpeed.setEditable(false);
+        tfRoomSpeed.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tfRoomSpeedActionPerformed(evt);
+            }
+        });
+
+        jLabel10.setText("Description:");
+
+        tfRoomDes.setColumns(20);
+        tfRoomDes.setRows(5);
+        jScrollPane2.setViewportView(tfRoomDes);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -188,7 +202,8 @@ public class LAN extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2)
+                    .addComponent(imagePreview, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel7)
@@ -196,29 +211,36 @@ public class LAN extends javax.swing.JFrame {
                             .addComponent(jLabel8))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextField4)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
-                            .addComponent(jTextField2))))
+                            .addComponent(tfRoomCreator, javax.swing.GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
+                            .addComponent(tfRoomName)
+                            .addComponent(tfRoomSpeed, javax.swing.GroupLayout.Alignment.TRAILING)))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel10)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(imagePreview, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tfRoomName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tfRoomCreator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(tfRoomSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(12, 12, 12)
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         jPanel3.setBackground(new java.awt.Color(105, 97, 90));
@@ -351,19 +373,34 @@ public class LAN extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-		String roomName = listRoom.getSelectedValue();
-		if (roomName == null) {
-			JOptionPane.showMessageDialog(null, "No Room Selected!!!");
-			return;
-		}
-		if (playerName.getText().isEmpty()) {
-			JOptionPane.showMessageDialog(null, "No Name Provived!!!");
-			return;
-		}
-		
-		this.dispose();
-		System.out.println("JOIN ROOM: " + roomName);
-		new PrepareGame(player, false).setVisible(true);
+        try {
+            String roomName = jlistRoomWaiting.getSelectedValue();
+            
+            if (roomName == null) {
+                JOptionPane.showMessageDialog(null, "No Room Selected!!!");
+                return;
+            }
+            if (playerName.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No Name Provived!!!");
+                return;
+            }
+            
+            // Action code
+            socketIO.getOutput().writeObject(Consts.JOIN_ROOM);
+            // Data
+            socketIO.getOutput().writeObject(selectedRoom);
+            socketIO.getOutput().writeObject(player);
+            // Receive new room state
+            Room joinedRoom = (Room) socketIO.getInput().readObject();
+			System.out.println(joinedRoom.getP2().getName());
+            
+            this.dispose();
+            new PrepareGame(socketIO, joinedRoom, false).setVisible(true);
+        } catch (IOException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        }
 		
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -373,11 +410,17 @@ public class LAN extends javax.swing.JFrame {
     }//GEN-LAST:event_exitBtnActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-		if (playerName.getText().isEmpty()) {
-			JOptionPane.showMessageDialog(null, "No Name Provived!!!");
-			return;
-		}
-		new CreateRoom(socket, player).setVisible(true);
+        try {
+            if (playerName.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No Name Provived!!!");
+                return;
+            }
+            this.dispose();
+            new CreateRoom(socketIO, player).setVisible(true);
+//            this.dispose();
+        } catch (Exception ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -400,16 +443,52 @@ public class LAN extends javax.swing.JFrame {
         player.setName(playerName.getText());
     }//GEN-LAST:event_playerNameKeyReleased
 
+    private void tfRoomSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfRoomSpeedActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tfRoomSpeedActionPerformed
+
+	private void registerMapListEvent() {
+		jlistRoomWaiting.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent arg0) {
+                if (!arg0.getValueIsAdjusting()) {
+					String roomName = jlistRoomWaiting.getSelectedValue().trim();
+					selectedRoom = getRoomByName(roomName);
+                        
+					ImageIcon icon = new ImageIcon(getClass().getResource(selectedRoom.getMap().getMapInfo().getImagePreviewPath())); 
+					Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
+					ImageIcon result = new ImageIcon(resize);
+					imagePreview.setIcon(result);
+                        
+                    tfRoomCreator.setText(selectedRoom.getP1().getName());
+                    tfRoomDes.setText(selectedRoom.getMap().getMapInfo().getDes());
+                    tfRoomName.setText(selectedRoom.getName());
+                    tfRoomSpeed.setText(new Integer(selectedRoom.getSpeed()).toString());
+                }
+            }
+        });
+	}
+    
+    private Room getRoomByName(String roomName) {
+        for (Room room : listRoomWaiting){
+            if (room.getName() == roomName){
+                return room;
+            }
+        }
+        return null;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton exitBtn;
+    private javax.swing.JLabel imagePreview;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -418,12 +497,13 @@ public class LAN extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JList<String> listRoom;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JList<String> jlistRoomWaiting;
     private javax.swing.JTextField playerName;
+    private javax.swing.JTextField tfRoomCreator;
+    private javax.swing.JTextArea tfRoomDes;
+    private javax.swing.JTextField tfRoomName;
+    private javax.swing.JTextField tfRoomSpeed;
     // End of variables declaration//GEN-END:variables
 }

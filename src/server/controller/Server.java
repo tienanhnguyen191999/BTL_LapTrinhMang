@@ -21,14 +21,19 @@ import model.Room;
  */
 public class Server {
 	private ArrayList<Room> listRoom;
-    private ArrayList<ClientThread> players;
+    private ArrayList<ClientThread> listPlayer;
+    private ArrayList<WaitingRoomThread> listWaitingRoom;
+    private ArrayList<GamePlayThread> listGamePlay;
 	ServerSocket server;
 		
 	public Server () {
 		try {
 			server = new ServerSocket(Consts.PORT);
+            
             listRoom = new ArrayList<Room>();
-            players = new ArrayList<ClientThread>();
+            listPlayer = new ArrayList<ClientThread>();
+            listWaitingRoom = new ArrayList<WaitingRoomThread>();
+            listGamePlay = new ArrayList<GamePlayThread>();
             
 			System.out.println("Server is running ...");
 		} catch (IOException ex) {
@@ -47,19 +52,9 @@ public class Server {
 			try {
 				Socket instance = server.accept();
 				
-                ClientThread player = new ClientThread(listRoom, instance);
-                players.add(player);
+                ClientThread player = new ClientThread(listRoom, listWaitingRoom, instance);
+                listPlayer.add(player);
 				player.start();
-				
-//				// Init new Room
-//				GamePlayThread gameplay = new GamePlayThread();
-//				// Init new Thread for current room
-//				gameplay.start();
-//				gameplay.addPlayterToRoom(player);
-//				if ( gameplay.isPlayAble() ) {
-//					gameplay.startGame();
-//				}
-				
 			} catch (IOException ex) {
 				Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
 			}

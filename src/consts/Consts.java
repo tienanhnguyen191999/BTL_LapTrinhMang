@@ -33,12 +33,16 @@ public class Consts {
     // For thread Listening action
     public static final int CREATE_ROOM_CODE = 1;
     public static final int BAR_MOVE = 2;
+    public static final int GET_LIST_ROOM = 3;
+    public static final int JOIN_ROOM = 4;
+    public static final int UPDATE_WAITING_ROOM = 5;
     
     // Room Status
     public static final int WAITING = 1;
-    public static final int PLAY = 2;
+    public static final int READY = 2;
     public static final int STOP = 3;
     public static final int PAUSE = 4;
+    public static final int PLAY = 5;
 }
 
 

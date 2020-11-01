@@ -13,10 +13,28 @@ import map.Map;
  * @author tienanh
  */
 public class Room implements Serializable{
+    private String name; // Unique
+    private Map map;
+    private int speed;
 	private ClientState p1, p2;
-	private Map map;
     private Integer status; // [Waiting, Play, NotPlay]
 
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+    
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+    
     public ClientState getP1() {
         return p1;
     }
