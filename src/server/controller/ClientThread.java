@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import model.ClientState;
 import model.Room;
 import consts.Consts;
-import map.Map;
 
 /**
  *
@@ -49,23 +48,40 @@ public class ClientThread extends Thread{
 		while(!state.isSocketClose){
             try {
                 Integer actionCode = (Integer)objectInput.readObject();
+                System.out.println(actionCode);
                 switch(actionCode){
+                    case Consts.GET_LIST_ROOM:
+                        this.getListRoom();
+                        break;
                     case Consts.CREATE_ROOM_CODE:
                         this.createNewRoom();
                         break;
                     case Consts.BAR_MOVE:
-                        this.listenOnBarMoveGamePlay();
+                        this.handleBarMove();
+                        break;
+                    case Consts.JOIN_ROOM:
+                        this.joinRoom();
                         break;
                 }
             } catch (IOException ex) {
+                System.out.println("Socket Closed");
                 this.state.isSocketClose = true;
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 	}
+    
+    private void getListRoom() {
+        try {
+            objectOutput.writeObject(listRoom);
+            objectOutput.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
-	public void listenOnBarMoveGamePlay(){
+	public void handleBarMove(){
         try {
             Integer keycode = (Integer)objectInput.readObject();
             switch (keycode) {
@@ -99,22 +115,49 @@ public class ClientThread extends Thread{
 
     private void createNewRoom() {
         try {
-            Room newRoom = new Room();
-            newRoom.setP1((ClientState)objectInput.readObject());
-            newRoom.setMap((Map)objectInput.readObject());
-            newRoom.setStatus(Consts.WAITING);
-            listRoom.add(newRoom);
+            Room newRoom = (Room)objectInput.readObject();
+            System.out.println("newRoom"+ newRoom.getName() + "\nMap Link: "+newRoom.getMap().getMapInfo().getImagePreviewPath());
+            // Check room_name is unique
+            System.out.println("LIST ROOM REGISTERED");
             for (Room tmp : listRoom){
-                System.out.println(tmp.getMap().getMapInfo().getImagePreviewPath());
+                System.out.println(tmp.getName());
+                if (newRoom.getName().trim().toLowerCase()
+                    .equals(tmp.getName().trim().toLowerCase())){
+                    System.out.println("IN FALSE");
+                    objectOutput.writeObject(false);
+                    return;
+                }
             }
             
+            objectOutput.writeObject(true);
+            newRoom.setStatus(Consts.WAITING);
+            listRoom.add(newRoom);
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-        
+   
+    private void joinRoom() {
+        try {
+            Room selectedRoom = (Room) objectInput.readObject();
+            ClientState p2 = (ClientState) objectInput.readObject();
+            for (Room room: listRoom){
+                if (selectedRoom.getName().trim().toLowerCase().equals(room.getName().trim().toLowerCase())){
+                    room.setP2(p2);
+                    room.setStatus(Consts.READY);
+                    objectOutput.writeObject(room);
+                    return;
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }    
+    
 	public void setObjectOutput(ObjectOutputStream objectOutput) {
 		this.objectOutput = objectOutput;
 	}

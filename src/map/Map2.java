@@ -29,6 +29,7 @@ public class Map2 extends Map implements Serializable{
 		}
 		
 		// Map Info
+        mapInfo.setName("Map2");
 		mapInfo.setType("Medium");
 		mapInfo.setDes("Fix this bois");
 		mapInfo.setImagePreviewPath("/data/mapPreview/map2.png");

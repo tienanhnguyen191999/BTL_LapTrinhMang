@@ -43,6 +43,7 @@ public class Map1 extends Map implements Serializable{
 		}
 		
 		// Map Info
+        mapInfo.setName("Map1");
 		mapInfo.setType("Small");
 		mapInfo.setDes("Des go here");
 		mapInfo.setImagePreviewPath("/data/mapPreview/map1.png");
