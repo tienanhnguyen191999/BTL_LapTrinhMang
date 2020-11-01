@@ -26,7 +26,6 @@ import consts.Consts;
 public class ClientThread extends Thread{
 	private ClientState state;
 	private ArrayList<Room> listRoom;
-    
 	private Socket socket;
 	private ObjectOutputStream objectOutput;
 	private ObjectInputStream objectInput;
@@ -123,7 +122,6 @@ public class ClientThread extends Thread{
                 System.out.println(tmp.getName());
                 if (newRoom.getName().trim().toLowerCase()
                     .equals(tmp.getName().trim().toLowerCase())){
-                    System.out.println("IN FALSE");
                     objectOutput.writeObject(false);
                     return;
                 }
@@ -147,6 +145,7 @@ public class ClientThread extends Thread{
                 if (selectedRoom.getName().trim().toLowerCase().equals(room.getName().trim().toLowerCase())){
                     room.setP2(p2);
                     room.setStatus(Consts.READY);
+					objectOutput.reset();
                     objectOutput.writeObject(room);
                     return;
                 }

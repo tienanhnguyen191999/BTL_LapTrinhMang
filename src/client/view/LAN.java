@@ -392,6 +392,7 @@ public class LAN extends javax.swing.JFrame {
             socketIO.getOutput().writeObject(player);
             // Receive new room state
             Room joinedRoom = (Room) socketIO.getInput().readObject();
+			System.out.println(joinedRoom.getP2().getName());
             
             this.dispose();
             new PrepareGame(socketIO, joinedRoom).setVisible(true);
