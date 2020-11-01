@@ -35,6 +35,7 @@ public class Consts {
     public static final int BAR_MOVE = 2;
     public static final int GET_LIST_ROOM = 3;
     public static final int JOIN_ROOM = 4;
+    public static final int UPDATE_WAITING_ROOM = 5;
     
     // Room Status
     public static final int WAITING = 1;

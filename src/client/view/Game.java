@@ -9,11 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import java.util.regex.Pattern;
 import model.ClientState;
 import model.SocketIO;
 /**
@@ -196,11 +192,15 @@ public class Game extends javax.swing.JFrame {
 
     private SocketIO initSocketIO(){
         try {
+            System.out.println("1");
             SocketIO socketIO = new SocketIO();
             Socket socket = new Socket(consts.Consts.IP_HOST, consts.Consts.PORT);
             socketIO.setSocket(socket);
-            socketIO.setInput(new ObjectInputStream(socket.getInputStream()));
+            System.out.println("1");
             socketIO.setOutput(new ObjectOutputStream(socket.getOutputStream()));
+            socketIO.setInput(new ObjectInputStream(socket.getInputStream()));
+            
+            System.out.println("1");
             return socketIO;
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Server not found");

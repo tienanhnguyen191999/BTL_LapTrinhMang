@@ -5,7 +5,11 @@
  */
 package client.view;
 
+import consts.Consts;
 import java.awt.Image;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import model.Room;
 import model.SocketIO;
@@ -17,11 +21,38 @@ import model.SocketIO;
 public class PrepareGame extends javax.swing.JFrame {
     private Room room;
     private SocketIO socketIO;
-	public PrepareGame(SocketIO socketIO, Room room) {
-		this.room = room;
+	public PrepareGame(SocketIO socketIO, Room roomInstance, boolean isHost) {
+		this.room = roomInstance;
         this.socketIO = socketIO;
 		initComponents();
         initNewRoom();
+        
+        if (!isHost) {
+            btnStart.setVisible(false);
+        }
+        
+        // Listening on room state change(p1, p2, ball, bar)
+        (new Thread() {
+                public void run() {
+                    try {
+                        while(true){
+                            Integer actionCode = (Integer)socketIO.getInput().readObject();
+                            if (actionCode == Consts.UPDATE_WAITING_ROOM){
+                                socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
+                            }
+                           
+                            Room updatedRoom = (Room)socketIO.getInput().readObject();
+                            System.out.println("Room Updated:" + updatedRoom.getName());
+                            room = updatedRoom;
+                            initNewRoom();
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (ClassNotFoundException ex) {
+                        Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+        }).start();
 	}
 
     private void initNewRoom() {
@@ -36,15 +67,12 @@ public class PrepareGame extends javax.swing.JFrame {
 			imagePreview.setIcon(result);
             
             tfP1Name.setText(room.getP1().getName());
-            tfP2Name.setText(room.getP2().getName());
-            watingGif.setVisible(false);
+            if (room.getP2() != null){
+                tfP2Name.setText(room.getP2().getName());
+                watingGif.setVisible(false);
+            }
         }catch (NullPointerException ex){
             // Listen on P2 Change
-            (new Thread() {
-                public void run() {
-                  
-                }
-            }).start();
             System.out.println("Waiting For P2. NEED IMPLEMENT HERES");
         }
     }
@@ -89,7 +117,7 @@ public class PrepareGame extends javax.swing.JFrame {
         jTextArea1 = new javax.swing.JTextArea();
         jTextField5 = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
+        btnStart = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -353,10 +381,10 @@ public class PrepareGame extends javax.swing.JFrame {
 
         jPanel4.setBackground(new java.awt.Color(224, 159, 94));
 
-        jButton1.setText("Start Game");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnStart.setText("Start Game");
+        btnStart.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnStartActionPerformed(evt);
             }
         });
 
@@ -374,7 +402,7 @@ public class PrepareGame extends javax.swing.JFrame {
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+                    .addComponent(btnStart, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
                     .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -382,7 +410,7 @@ public class PrepareGame extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnStart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -421,9 +449,9 @@ public class PrepareGame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnStartActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		this.dispose();		
@@ -435,12 +463,12 @@ public class PrepareGame extends javax.swing.JFrame {
     }//GEN-LAST:event_cbP2BarColorActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnStart;
     private javax.swing.JComboBox<String> cbP1BallColor;
     private javax.swing.JComboBox<String> cbP1BarColor;
     private javax.swing.JComboBox<String> cbP2BallColor;
     private javax.swing.JComboBox<String> cbP2BarColor;
     private javax.swing.JLabel imagePreview;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;

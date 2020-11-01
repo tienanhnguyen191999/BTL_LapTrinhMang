@@ -395,7 +395,7 @@ public class LAN extends javax.swing.JFrame {
 			System.out.println(joinedRoom.getP2().getName());
             
             this.dispose();
-            new PrepareGame(socketIO, joinedRoom).setVisible(true);
+            new PrepareGame(socketIO, joinedRoom, false).setVisible(true);
         } catch (IOException ex) {
             Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {

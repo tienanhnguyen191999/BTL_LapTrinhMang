@@ -7,13 +7,14 @@ package model;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 
 /**
  *
  * @author tienanh
  */
-public class SocketIO {
+public class SocketIO implements Serializable{
     private Socket socket;
     private ObjectOutputStream output;
     private ObjectInputStream input;

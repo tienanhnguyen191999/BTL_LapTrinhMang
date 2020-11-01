@@ -376,7 +376,7 @@ public class CreateRoom extends javax.swing.JFrame {
             boolean isRoomNameUnique = (boolean)socketIO.getInput().readObject();
             if (isRoomNameUnique){
                 this.dispose();
-                new PrepareGame(socketIO, newRoom).setVisible(true);
+                new PrepareGame(socketIO, newRoom, true).setVisible(true);
             }else{
                 JOptionPane.showMessageDialog(null, "Room Name is Registered");
                 return;

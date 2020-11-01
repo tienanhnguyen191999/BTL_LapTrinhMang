@@ -78,10 +78,10 @@ public class GamePlayThread extends Thread{
 						try {
 							ClientThread connectedPlayer = arr_player.get(index == 0 ? 1 : 0);
 							// Set "lost connection" to other player
-							connectedPlayer.getObjectOutput().reset();
-							connectedPlayer.getObjectOutput().writeObject(arr_player.get(0).getClientState());
-							connectedPlayer.getObjectOutput().writeObject(arr_player.get(1).getClientState());
-							connectedPlayer.getObjectOutput().writeObject(map.getMapState());
+							connectedPlayer.getSocketIO().getOutput().reset();
+							connectedPlayer.getSocketIO().getOutput().writeObject(arr_player.get(0).getClientState());
+							connectedPlayer.getSocketIO().getOutput().writeObject(arr_player.get(1).getClientState());
+							connectedPlayer.getSocketIO().getOutput().writeObject(map.getMapState());
 						} catch (IOException ex) {
 
 						}
@@ -106,10 +106,10 @@ public class GamePlayThread extends Thread{
 					// Send current state of object to each client
 					for (ClientThread player : arr_player){
 						try {
-							player.getObjectOutput().reset();
-							player.getObjectOutput().writeObject(arr_player.get(0).getClientState());
-							player.getObjectOutput().writeObject(arr_player.get(1).getClientState());
-							player.getObjectOutput().writeObject(map.getMapState());
+							player.getSocketIO().getOutput().reset();
+							player.getSocketIO().getOutput().writeObject(arr_player.get(0).getClientState());
+							player.getSocketIO().getOutput().writeObject(arr_player.get(1).getClientState());
+							player.getSocketIO().getOutput().writeObject(map.getMapState());
 						} catch (IOException ex) {
 							player.getClientState().isSocketClose = true;
 						}
@@ -236,11 +236,6 @@ public class GamePlayThread extends Thread{
 		}
 	} 
 	
-	
-	/**
-	 *
-	 * @param player
-	 */
 	public void addPlayterToRoom (ClientThread player){
 		if (arr_player.size() < Consts.MAX_PLAYER){
 			arr_player.add(player);
@@ -253,18 +248,11 @@ public class GamePlayThread extends Thread{
 	@Override
 	public void run() {	
 	}
-	
-	/**
-	 *
-	 */
+
 	public void startGame () {
 		timer.start();
 	}
-	
-	/**
-	 *
-	 * @return
-	 */
+
 	public boolean isPlayAble () {
 		if  ( this.arr_player.size() != 2 ) return false;
 		this.initNewGame();
