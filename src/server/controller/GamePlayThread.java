@@ -25,12 +25,11 @@ import map.*;
  */
 public class GamePlayThread extends Thread{
 	private int padding = 50;
-	private int delayTime = 50;
+	private int delayTime = 20;
 	private boolean isPlay, isGameOver, isInitNewGame;
 	private Map map;
 	
 	private ArrayList<ClientThread> arr_player;
-	private int times = 0;
 	private Timer timer;
 	
 	GamePlayThread () {
@@ -42,7 +41,6 @@ public class GamePlayThread extends Thread{
 		isInitNewGame = true;
 		
 		// Init new Map
-		map = new Map3();
 		timer = new Timer(delayTime, handleRerenderEachTime());
 		
 		// Init new player state
@@ -64,10 +62,6 @@ public class GamePlayThread extends Thread{
 		}
 	}
 	
-	/**
-	 *
-	 * @return
-	 */
 	public ActionListener handleRerenderEachTime () {
 		return new ActionListener() {
 			@Override
@@ -250,13 +244,12 @@ public class GamePlayThread extends Thread{
 	}
 
 	public void startGame () {
+        this.initNewGame();
+		isPlay = true;
 		timer.start();
 	}
 
-	public boolean isPlayAble () {
-		if  ( this.arr_player.size() != 2 ) return false;
-		this.initNewGame();
-		isPlay = true;
-		return true;
-	}
+    public void setMap(Map map) {
+        this.map = map;
+    }
 }
