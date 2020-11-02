@@ -10,8 +10,8 @@ package consts;
  * @author tienanh
  */
 public class Consts {
-	public static final int PORT = 1107;
 	public static final String IP_HOST = "localhost";
+	public static final int PORT = 1107;
 	public static final int MAX_PLAYER = 2;
 	
 	public static final int SCREEN_WIDTH = 1600;
@@ -37,7 +37,17 @@ public class Consts {
     public static final int JOIN_ROOM = 4;
     public static final int UPDATE_WAITING_ROOM = 5;
     public static final int START_GAME = 6; 
-    
+	public static final int SEND_MESSAGE = 7;
+	public static final int UPDATE_P1_BALL_COLOR = 8;
+	public static final int UPDATE_P2_BALL_COLOR = 9;
+	
+	// For Gameplay Thread
+	public static final int COUNTER_BEFORE_START = 8; 
+	public static final int UPDATE_GAMEPLAY_STATE = 9; 
+	public static final int OTHER_PLAYER_LOST_CONNECTION = 10;
+	public static final int GAME_LOSE = 11;
+	public static final int GAME_WIN = 12;
+	
     // Room Status
     public static final int WAITING = 1;
     public static final int READY = 2;

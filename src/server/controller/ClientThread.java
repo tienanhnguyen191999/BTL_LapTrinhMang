@@ -18,8 +18,10 @@ import java.util.logging.Logger;
 import model.ClientState;
 import model.Room;
 import consts.Consts;
+import java.awt.Color;
 import java.io.Serializable;
 import model.SocketIO;
+import util.Utils;
 
 /**
  *
@@ -28,6 +30,9 @@ import model.SocketIO;
 public class ClientThread extends Thread implements Serializable{
 	private ClientState state;
 	private SocketIO socketIO;
+	
+	private Room selectedRoom;
+	private WaitingRoomThread selectedRoomThread;
     private ArrayList<Room> listRoom;
     private ArrayList<WaitingRoomThread> listRoomThread;
 	
@@ -76,6 +81,15 @@ public class ClientThread extends Thread implements Serializable{
                     case Consts.START_GAME:
                         this.startGame();
                         break;
+					case Consts.SEND_MESSAGE:
+                        this.sendMessage();
+                        break;
+					case Consts.UPDATE_P1_BALL_COLOR:
+						handleUpdateP1BallColor();
+						break;
+					case Consts.UPDATE_P2_BALL_COLOR:
+						handleUpdateP2BallColor();
+						break;
                 }
             } catch (IOException ex) {
                 System.out.println("Socket Closed");
@@ -86,20 +100,67 @@ public class ClientThread extends Thread implements Serializable{
         }
 	}
     
+	private void handleUpdateP1BallColor () {
+		try {
+			String color = (String) socketIO.getInput().readObject();
+			selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.UPDATE_P1_BALL_COLOR);
+			selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(color);
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	private void handleUpdateP2BallColor () {
+		try {
+			String color = (String) socketIO.getInput().readObject();
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.UPDATE_P2_BALL_COLOR);
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(color);
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	private void sendMessage() {
+		try {
+			String message = (String) socketIO.getInput().readObject();
+			message = state.getName() + ": " + message + "\n";
+			
+			// Send flag
+            selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.SEND_MESSAGE);
+            selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.SEND_MESSAGE);
+			
+			// Send data
+            selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(message);
+            selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(message);
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
     private void startGame() {
         try {
             Room newRoom = (Room) socketIO.getInput().readObject();
             
-            WaitingRoomThread roomThread = this.getWaitingRoomThreadByRoomName(newRoom.getName());
+            selectedRoomThread = this.getWaitingRoomThreadByRoomName(newRoom.getName());
+			
             GamePlayThread gamePlay = new GamePlayThread();
-            gamePlay.addPlayterToRoom(roomThread.getP1());
-            gamePlay.addPlayterToRoom(roomThread.getP2());
-            gamePlay.setMap(roomThread.getRoom().getMap());
+			
+			selectedRoomThread.getP1().setClientState(selectedRoomThread.getRoom().getP1());
+			selectedRoomThread.getP2().setClientState(selectedRoomThread.getRoom().getP2());
+			
+            gamePlay.addPlayterToRoom(selectedRoomThread.getP1());
+            gamePlay.addPlayterToRoom(selectedRoomThread.getP2());
+            gamePlay.setMap(selectedRoomThread.getRoom().getMap());
             gamePlay.start(); // Active Thread
             
-            
-            roomThread.getP1().getSocketIO().getOutput().writeObject(Consts.START_GAME);
-            roomThread.getP2().getSocketIO().getOutput().writeObject(Consts.START_GAME);
+            selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.START_GAME);
+            selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.START_GAME);
             gamePlay.startGame();
             
         } catch (IOException ex) {
@@ -179,10 +240,12 @@ public class ClientThread extends Thread implements Serializable{
             listRoom.add(newRoom);
             
             // Create new waitingRoomThread
-            WaitingRoomThread newWaitingRoomThread = new WaitingRoomThread();
-            newWaitingRoomThread.setRoom(newRoom);
-            newWaitingRoomThread.setP1(this);
-            listRoomThread.add(newWaitingRoomThread);
+            selectedRoomThread = new WaitingRoomThread();
+            selectedRoomThread.setRoom(newRoom);
+            selectedRoomThread.setP1(this);
+			selectedRoomThread.getP1().setClientState(selectedRoomThread.getRoom().getP1());
+            listRoomThread.add(selectedRoomThread);
+			
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -204,13 +267,13 @@ public class ClientThread extends Thread implements Serializable{
                     socketIO.getOutput().writeObject(room);
                     
                     // Add to WaitingRoomThread
-                    WaitingRoomThread roomThread = this.getWaitingRoomThreadByRoomName(room.getName());
-                    roomThread.setRoom(room);
-                    roomThread.setP2(this);
+                    selectedRoomThread = this.getWaitingRoomThreadByRoomName(room.getName());
+                    selectedRoomThread.setRoom(room);
+                    selectedRoomThread.setP2(this);
+					selectedRoomThread.getP2().setClientState(selectedRoomThread.getRoom().getP2());
                     
                     // Send update action
-                    roomThread.getP1().socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
-//                    roomThread.getP1().socketIO.getOutput().writeObject(room);
+                    selectedRoomThread.getP1().socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
                     return;
                 }
             }

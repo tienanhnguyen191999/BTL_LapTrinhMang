@@ -7,14 +7,21 @@ package client.view;
 
 import client.controller.Client;
 import consts.Consts;
+import java.awt.Color;
 import java.awt.Image;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JScrollBar;
+import javax.swing.text.DefaultCaret;
 import model.Room;
 import model.SocketIO;
+import util.Utils;
 
 /**
  *
@@ -23,33 +30,38 @@ import model.SocketIO;
 public class PrepareGame extends javax.swing.JFrame {
     private Room room;
     private SocketIO socketIO;
+	private boolean isHost;
 	public PrepareGame(SocketIO socketIO, Room roomInstance, boolean isHost) {
 		this.room = roomInstance;
         this.socketIO = socketIO;
+		this.isHost = isHost;
 		initComponents();
-        initNewRoom();
-        
-        if (!isHost) {
-            btnStart.setVisible(false);
-        }
-        
-        // Listening on room state change(p1, p2, ball, bar)
+		manualBindEvents();
+		initNewRoom();
+        // Listening on room state change(p1, p2, ball, bar, message)
         (new Thread() {
                 public void run() {
                     try {
                         while(true){
                             Integer actionCode = (Integer)socketIO.getInput().readObject();
-                            if (actionCode == Consts.UPDATE_WAITING_ROOM){
-                                socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
-                                socketIO.getOutput().writeObject(getRoom());
-                                
-                                Room updatedRoom = (Room)socketIO.getInput().readObject();
-                                room = updatedRoom;
-                                initNewRoom();
-                            }else if (actionCode == Consts.START_GAME){
-                                dispose();
-                                new Client(socketIO);
-                            }
+							System.out.println(actionCode);
+							switch (actionCode){
+								case Consts.UPDATE_WAITING_ROOM:
+									updateWaitingRoom();
+									break;
+								case Consts.START_GAME:
+									startGame();
+									break;
+								case Consts.SEND_MESSAGE:
+									updateChatBox();
+									break;
+								case Consts.UPDATE_P1_BALL_COLOR:
+									updateP1BallColor();
+									break;
+								case Consts.UPDATE_P2_BALL_COLOR:
+									updateP2BallColor();
+									break;
+							}
                         }
                     } catch (IOException ex) {
                         Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
@@ -59,26 +71,128 @@ public class PrepareGame extends javax.swing.JFrame {
                 }
         }).start();
 	}
+	
+	public void manualBindEvents() {
+		cbP1BallColor.addItemListener(new ItemListener(){
+			public void itemStateChanged(ItemEvent e){
+				try {
+					// Send action code
+					socketIO.getOutput().writeObject(Consts.UPDATE_P1_BALL_COLOR);
+					
+					// Update ball corlor
+					socketIO.getOutput().writeObject(cbP1BallColor.getSelectedItem().toString());
+				} catch (IOException ex) {
+					Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+				}
+			}
+		});
+		cbP2BallColor.addItemListener(new ItemListener(){
+			public void itemStateChanged(ItemEvent e){
+				try {
+					// Send action code
+					socketIO.getOutput().writeObject(Consts.UPDATE_P2_BALL_COLOR);
+					
+					// Update ball corlor
+					socketIO.getOutput().writeObject(cbP2BallColor.getSelectedItem().toString());
+				} catch (IOException ex) {
+					Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+				}
+			}
+		});
+		
+		
+		
+		
+		
+	}
+	
+	public void updateP1BallColor () {
+		try {
+			String color = (String)socketIO.getInput().readObject();
+			cbP1BallColor.setSelectedItem(color);
+		} catch (IOException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void updateP2BallColor () {
+		try {
+			String color = (String)socketIO.getInput().readObject();
+			cbP2BallColor.setSelectedItem(color);
+		} catch (IOException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void updateChatBox (){
+		try {
+			String message = (String)socketIO.getInput().readObject();
+			tfChatBox.append(message);
+			JScrollBar vertical = jScrollPane2.getVerticalScrollBar();
+			vertical.setValue( vertical.getMaximum() );
+		} catch (IOException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		
+	}
+	
+	public void startGame () {
+		for (Integer i = 5; i > 0 ; i-- ){
+			try {
+				tfChatBox.append(i.toString() + "\n");
+				JScrollBar vertical = jScrollPane2.getVerticalScrollBar();
+				vertical.setValue( vertical.getMaximum() );
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException ex) {
+				Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+		dispose();
+		new Client(socketIO);
+	}
+	
+	public void updateWaitingRoom (){
+		try {
+			socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
+			socketIO.getOutput().writeObject(getRoom());
+			Room updatedRoom = (Room)socketIO.getInput().readObject();
+			room = updatedRoom;
+			initNewRoom();
+		} catch (IOException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
 
     private void initNewRoom() {
-        try{
-            tfDes.setText(room.getMap().getMapInfo().getDes());
-            tfGameSpeed.setText(new Integer(room.getSpeed()).toString());
-            tfMapSize.setText(room.getMap().getMapInfo().getType());
-            tfMapName.setText(room.getName());
-            ImageIcon icon = new ImageIcon(getClass().getResource(room.getMap().getMapInfo().getImagePreviewPath())); 
-            Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
-			ImageIcon result = new ImageIcon(resize);
-			imagePreview.setIcon(result);
-            
-            tfP1Name.setText(room.getP1().getName());
-            if (room.getP2() != null){
-                tfP2Name.setText(room.getP2().getName());
-                watingGif.setVisible(false);
-            }
-        }catch (NullPointerException ex){
-            // Listen on P2 Change
-        }
+		tfDes.setText(room.getMap().getMapInfo().getDes()); // Listen on P2 Change
+		tfGameSpeed.setText(new Integer(room.getSpeed()).toString());
+		tfMapSize.setText(room.getMap().getMapInfo().getType());
+		tfMapName.setText(room.getName());
+		ImageIcon icon = new ImageIcon(getClass().getResource(room.getMap().getMapInfo().getImagePreviewPath()));
+		Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
+		ImageIcon result = new ImageIcon(resize);
+		imagePreview.setIcon(result);
+		tfP1Name.setText(room.getP1().getName());
+		if (room.getP2() != null){
+			tfP2Name.setText(room.getP2().getName());
+			watingGif.setVisible(false);
+		}
+		
+		// Auto Scroll TextArea 
+        if (!isHost) {
+            btnStart.setVisible(false);
+			cbP1BallColor.setEnabled(false);
+        } else{
+			cbP2BallColor.setEnabled(false);
+		}
     }
 
     public Room getRoom() {
@@ -94,15 +208,12 @@ public class PrepareGame extends javax.swing.JFrame {
         jPanel5 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         tfP1Name = new javax.swing.JTextPane();
-        cbP1BarColor = new javax.swing.JComboBox<>();
         cbP1BallColor = new javax.swing.JComboBox<>();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
         tfP2Name = new javax.swing.JTextPane();
-        cbP2BarColor = new javax.swing.JComboBox<>();
         cbP2BallColor = new javax.swing.JComboBox<>();
         jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         watingGif = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
@@ -121,9 +232,10 @@ public class PrepareGame extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         tfDes = new javax.swing.JTextArea();
         jPanel3 = new javax.swing.JPanel();
+        tfMessage = new javax.swing.JTextField();
+        btnSendMessage = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        tfMessage = new javax.swing.JTextArea();
-        jTextField5 = new javax.swing.JTextField();
+        tfChatBox = new javax.swing.JTextArea();
         jPanel4 = new javax.swing.JPanel();
         btnStart = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
@@ -139,9 +251,12 @@ public class PrepareGame extends javax.swing.JFrame {
         tfP1Name.setToolTipText("");
         jScrollPane4.setViewportView(tfP1Name);
 
-        cbP1BarColor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "RED", "GREEN", "BLUE" }));
-
-        cbP1BallColor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "GREEN", "BLUE", "RED", " " }));
+        cbP1BallColor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "RED", "GREEN", "BLUE" }));
+        cbP1BallColor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbP1BallColorActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -149,11 +264,9 @@ public class PrepareGame extends javax.swing.JFrame {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane4)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 448, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cbP1BarColor, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cbP1BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cbP1BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, 253, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
@@ -162,23 +275,19 @@ public class PrepareGame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(cbP1BarColor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(cbP1BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(cbP1BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         tfP2Name.setEditable(false);
         jScrollPane5.setViewportView(tfP2Name);
 
-        cbP2BarColor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "RED", "GREEN", "BLUE" }));
-        cbP2BarColor.addActionListener(new java.awt.event.ActionListener() {
+        cbP2BallColor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "BLUE", "RED", "GREEN" }));
+        cbP2BallColor.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cbP2BarColorActionPerformed(evt);
+                cbP2BallColorActionPerformed(evt);
             }
         });
-
-        cbP2BallColor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "BLUE", "RED", "GREEN", " " }));
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -186,11 +295,9 @@ public class PrepareGame extends javax.swing.JFrame {
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane5)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cbP2BarColor, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cbP2BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cbP2BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
@@ -198,16 +305,12 @@ public class PrepareGame extends javax.swing.JFrame {
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(cbP2BarColor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(cbP2BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(cbP2BallColor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jLabel10.setText("Player 2");
-
-        jLabel11.setText("Bar Color");
 
         jLabel12.setText("Ball Color");
 
@@ -218,7 +321,7 @@ public class PrepareGame extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -233,11 +336,9 @@ public class PrepareGame extends javax.swing.JFrame {
                         .addContainerGap())
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel9)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 433, Short.MAX_VALUE)
-                        .addComponent(jLabel11)
-                        .addGap(80, 80, 80)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel12)
-                        .addGap(38, 38, 38))))
+                        .addGap(206, 206, 206))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -245,7 +346,6 @@ public class PrepareGame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
-                    .addComponent(jLabel11)
                     .addComponent(jLabel12))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -255,7 +355,7 @@ public class PrepareGame extends javax.swing.JFrame {
                     .addComponent(watingGif))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(425, Short.MAX_VALUE))
+                .addContainerGap(447, Short.MAX_VALUE))
         );
 
         jPanel2.setBackground(new java.awt.Color(226, 199, 172));
@@ -297,6 +397,7 @@ public class PrepareGame extends javax.swing.JFrame {
 
         jLabel3.setText("Description:");
 
+        tfDes.setEditable(false);
         tfDes.setColumns(20);
         tfDes.setRows(5);
         jScrollPane1.setViewportView(tfDes);
@@ -355,16 +456,32 @@ public class PrepareGame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         jPanel3.setBackground(new java.awt.Color(105, 97, 90));
 
-        tfMessage.setColumns(20);
-        tfMessage.setRows(5);
-        tfMessage.setText("TienAnh: Hello, Chat ở đây nha\nSomeChick: Okay .-. \n\n\n\n\n\n\n");
-        jScrollPane2.setViewportView(tfMessage);
+        tfMessage.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                tfMessageKeyTyped(evt);
+            }
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tfMessageKeyPressed(evt);
+            }
+        });
+
+        btnSendMessage.setText("Send");
+        btnSendMessage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSendMessageActionPerformed(evt);
+            }
+        });
+
+        tfChatBox.setEditable(false);
+        tfChatBox.setColumns(20);
+        tfChatBox.setRows(5);
+        jScrollPane2.setViewportView(tfChatBox);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -373,8 +490,11 @@ public class PrepareGame extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField5)
-                    .addComponent(jScrollPane2))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(tfMessage)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnSendMessage))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 737, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -382,8 +502,10 @@ public class PrepareGame extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(tfMessage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSendMessage))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -420,7 +542,7 @@ public class PrepareGame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(btnStart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -461,33 +583,84 @@ public class PrepareGame extends javax.swing.JFrame {
         try {
             // Send action code
             socketIO.getOutput().writeObject(Consts.START_GAME);
+			// Update ball corlor
+			
+			this.getRoom().getP1().getBall().setColor(Utils.colorMapping(cbP1BallColor.getSelectedItem().toString()));
+			this.getRoom().getP2().getBall().setColor(Utils.colorMapping(cbP2BallColor.getSelectedItem().toString()));
+			
             socketIO.getOutput().writeObject(this.getRoom());
+			btnStart.setEnabled(false); 
         } catch (IOException ex) {
             Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }//GEN-LAST:event_btnStartActionPerformed
-
+	
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		this.dispose();		
 		new LAN(socketIO, this.room.getP1()).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    private void cbP2BarColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP2BarColorActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_cbP2BarColorActionPerformed
+    private void cbP2BallColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP2BallColorActionPerformed
+//		try {
+//			// Send action code
+//			socketIO.getOutput().writeObject(Consts.UPDATE_P2_BALL_COLOR);
+//			
+//			// Update ball corlor
+//			socketIO.getOutput().writeObject(cbP2BallColor.getSelectedItem().toString());
+//		} catch (IOException ex) {
+//			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+//		}
+    }//GEN-LAST:event_cbP2BallColorActionPerformed
 
+    private void btnSendMessageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageActionPerformed
+		sendMessage();
+    }//GEN-LAST:event_btnSendMessageActionPerformed
+
+    private void tfMessageKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfMessageKeyTyped
+
+    }//GEN-LAST:event_tfMessageKeyTyped
+
+    private void tfMessageKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfMessageKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER){
+			sendMessage();
+		}
+    }//GEN-LAST:event_tfMessageKeyPressed
+
+    private void cbP1BallColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP1BallColorActionPerformed
+//		try {
+//			// Send action code
+//			socketIO.getOutput().writeObject(Consts.UPDATE_P1_BALL_COLOR);
+//			
+//			// Update ball corlor
+//			socketIO.getOutput().writeObject(cbP1BallColor.getSelectedItem().toString());
+//		} catch (IOException ex) {
+//			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+//		}
+    }//GEN-LAST:event_cbP1BallColorActionPerformed
+
+	public void sendMessage() {
+		String message = tfMessage.getText();
+		if (!message.isEmpty()){
+			try {
+				// Send message
+				socketIO.getOutput().writeObject(Consts.SEND_MESSAGE);
+				socketIO.getOutput().writeObject(message);
+				tfMessage.setText("");
+			} catch (IOException ex) {
+				Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+	}
+	
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnSendMessage;
     private javax.swing.JButton btnStart;
     private javax.swing.JComboBox<String> cbP1BallColor;
-    private javax.swing.JComboBox<String> cbP1BarColor;
     private javax.swing.JComboBox<String> cbP2BallColor;
-    private javax.swing.JComboBox<String> cbP2BarColor;
     private javax.swing.JLabel imagePreview;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel6;
@@ -506,12 +679,12 @@ public class PrepareGame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JTextField jTextField5;
+    private javax.swing.JTextArea tfChatBox;
     private javax.swing.JTextArea tfDes;
     private javax.swing.JTextField tfGameSpeed;
     private javax.swing.JTextField tfMapName;
     private javax.swing.JTextField tfMapSize;
-    private javax.swing.JTextArea tfMessage;
+    private javax.swing.JTextField tfMessage;
     private javax.swing.JTextPane tfP1Name;
     private javax.swing.JTextPane tfP2Name;
     private javax.swing.JTextPane tfRoomName;
