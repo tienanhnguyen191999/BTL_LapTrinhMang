@@ -74,7 +74,6 @@ public class ClientThread extends Thread implements Serializable{
                         this.updateWaitingRoom();
                         break;
                     case Consts.START_GAME:
-                        System.out.println("HERE");
                         this.startGame();
                         break;
                 }
@@ -89,7 +88,6 @@ public class ClientThread extends Thread implements Serializable{
     
     private void startGame() {
         try {
-            System.out.println("HERE");
             Room newRoom = (Room) socketIO.getInput().readObject();
             
             WaitingRoomThread roomThread = this.getWaitingRoomThreadByRoomName(newRoom.getName());

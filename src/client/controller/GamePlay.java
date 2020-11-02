@@ -210,12 +210,10 @@ public class GamePlay extends JPanel{
 			public void mouseClicked(MouseEvent me) {
 				if (me.getX() >= width + 20 && me.getX() <= width + 20 + 150 &&
 				    me.getY() >= height - 100 && me.getY() <= height - 50){
-					System.out.println("Pause event trigger");
 					isPlay = !isPlay;
 					isInitNewGame = false;
 				}else if (me.getX() >= width + 220 && me.getX() <= width + 220 + 150 &&
 				    me.getY() >= height - 100 && me.getY() <= height - 50) {
-					System.out.println("Exit event trigger");
 					JFrame parent = (JFrame)self.getTopLevelAncestor();
 					parent.dispose();
 					System.exit(0);

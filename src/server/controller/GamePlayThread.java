@@ -233,7 +233,6 @@ public class GamePlayThread extends Thread{
 	public void addPlayterToRoom (ClientThread player){
 		if (arr_player.size() < Consts.MAX_PLAYER){
 			arr_player.add(player);
-			System.out.println("PLayer number: " + arr_player.size());
 		}else {
 			System.out.println("!!! Room reach maximum player !!!");
 		}

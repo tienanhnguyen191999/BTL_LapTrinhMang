@@ -44,7 +44,6 @@ public class PrepareGame extends javax.swing.JFrame {
                                 socketIO.getOutput().writeObject(getRoom());
                                 
                                 Room updatedRoom = (Room)socketIO.getInput().readObject();
-                                System.out.println("Room Updated:" + updatedRoom.getName());
                                 room = updatedRoom;
                                 initNewRoom();
                             }else if (actionCode == Consts.START_GAME){
@@ -79,7 +78,6 @@ public class PrepareGame extends javax.swing.JFrame {
             }
         }catch (NullPointerException ex){
             // Listen on P2 Change
-            System.out.println("Waiting For P2. NEED IMPLEMENT HERES");
         }
     }
 
@@ -462,10 +460,8 @@ public class PrepareGame extends javax.swing.JFrame {
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
         try {
             // Send action code
-            System.out.println("IN1");
             socketIO.getOutput().writeObject(Consts.START_GAME);
             socketIO.getOutput().writeObject(this.getRoom());
-            System.out.println("IN1");
         } catch (IOException ex) {
             Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
         }
