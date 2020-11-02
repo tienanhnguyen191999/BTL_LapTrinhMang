@@ -32,6 +32,7 @@ public class Client {
         // GamePlay
 		GamePlay gamePlay = new GamePlay(socketIO);
 		mainFrame.add(gamePlay);
+                gamePlay.requestFocus();
 		gamePlay.play();
     }
 }
