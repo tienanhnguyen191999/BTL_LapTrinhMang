@@ -5,9 +5,11 @@
  */
 package client.view;
 
+import client.controller.Client;
 import consts.Consts;
 import java.awt.Image;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -39,12 +41,15 @@ public class PrepareGame extends javax.swing.JFrame {
                             Integer actionCode = (Integer)socketIO.getInput().readObject();
                             if (actionCode == Consts.UPDATE_WAITING_ROOM){
                                 socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
+                                socketIO.getOutput().writeObject(getRoom());
+                                
+                                Room updatedRoom = (Room)socketIO.getInput().readObject();
+                                room = updatedRoom;
+                                initNewRoom();
+                            }else if (actionCode == Consts.START_GAME){
+                                dispose();
+                                new Client(socketIO);
                             }
-                           
-                            Room updatedRoom = (Room)socketIO.getInput().readObject();
-                            System.out.println("Room Updated:" + updatedRoom.getName());
-                            room = updatedRoom;
-                            initNewRoom();
                         }
                     } catch (IOException ex) {
                         Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
@@ -73,8 +78,11 @@ public class PrepareGame extends javax.swing.JFrame {
             }
         }catch (NullPointerException ex){
             // Listen on P2 Change
-            System.out.println("Waiting For P2. NEED IMPLEMENT HERES");
         }
+    }
+
+    public Room getRoom() {
+        return room;
     }
     
 	@SuppressWarnings("unchecked")
@@ -114,7 +122,7 @@ public class PrepareGame extends javax.swing.JFrame {
         tfDes = new javax.swing.JTextArea();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        tfMessage = new javax.swing.JTextArea();
         jTextField5 = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
         btnStart = new javax.swing.JButton();
@@ -353,10 +361,10 @@ public class PrepareGame extends javax.swing.JFrame {
 
         jPanel3.setBackground(new java.awt.Color(105, 97, 90));
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jTextArea1.setText("TienAnh: Hello, Chat ở đây nha\nSomeChick: Okay .-. \n\n\n\n\n\n\n");
-        jScrollPane2.setViewportView(jTextArea1);
+        tfMessage.setColumns(20);
+        tfMessage.setRows(5);
+        tfMessage.setText("TienAnh: Hello, Chat ở đây nha\nSomeChick: Okay .-. \n\n\n\n\n\n\n");
+        jScrollPane2.setViewportView(tfMessage);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -450,7 +458,14 @@ public class PrepareGame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
-        // TODO add your handling code here:
+        try {
+            // Send action code
+            socketIO.getOutput().writeObject(Consts.START_GAME);
+            socketIO.getOutput().writeObject(this.getRoom());
+        } catch (IOException ex) {
+            Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }//GEN-LAST:event_btnStartActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -491,12 +506,12 @@ public class PrepareGame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JTextArea tfDes;
     private javax.swing.JTextField tfGameSpeed;
     private javax.swing.JTextField tfMapName;
     private javax.swing.JTextField tfMapSize;
+    private javax.swing.JTextArea tfMessage;
     private javax.swing.JTextPane tfP1Name;
     private javax.swing.JTextPane tfP2Name;
     private javax.swing.JTextPane tfRoomName;

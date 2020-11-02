@@ -28,21 +28,22 @@ import javax.swing.JPanel;
 import model.Brick;
 import model.ClientState;
 import model.MapState;
+import model.SocketIO;
 
 /**
  *
  * @author tienanh
  */
 public class GamePlay extends JPanel{
-	private int width, height, padding = 50;
+	// Gameplay state
+    private int width, height, padding = 50;
 	private boolean isPlay, isInitNewGame, isGameOver = true;
 	private boolean isEnemyDisconnected, isShow = false;
 	private MapState mapState;
-	
 	private ClientState p1, p2;
-	private ObjectInputStream inp;
-	private ObjectOutputStream out;
-	
+    
+    // In/Out
+	private SocketIO socketIO;
 	ImageIcon disconnectedGif;
 	@Override
 	protected void paintComponent(Graphics g) {
@@ -129,31 +130,25 @@ public class GamePlay extends JPanel{
 		}
 	}
 	
-	public GamePlay(int width, int height, Socket socket) {
-		initGif();
-		isEnemyDisconnected = false;
-		
+	public GamePlay(SocketIO socketIO) {
+        this.socketIO = socketIO;
 		p1 = new ClientState();
 		p2 = new ClientState();
+        isEnemyDisconnected = false;
 		isPlay = true;
-		try {
-			out = new ObjectOutputStream(socket.getOutputStream());
-			inp = new ObjectInputStream(socket.getInputStream());
-			initNewGame();
-			// handle Bar move
-			addKeyListener(this.handleBarMove());
-			addMouseListener(this.handleClickEvent());
-		} catch (IOException ex) {
-			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
-		}
+        initNewGame();
+        initGif();
+        // handle Bar move
+        addKeyListener(this.handleBarMove());
+        addMouseListener(this.handleClickEvent());
 	}
 	
 	public void play () {
 		while (true){
 			try {
-				p1 = (ClientState)inp.readObject();
-				p2 = (ClientState)inp.readObject();
-				this.mapState = (MapState)inp.readObject();
+				p1 = (ClientState)socketIO.getInput().readObject();
+				p2 = (ClientState)socketIO.getInput().readObject();
+				this.mapState = (MapState)socketIO.getInput().readObject();
 				isPlay = true;
 				
 				repaint();
@@ -161,18 +156,17 @@ public class GamePlay extends JPanel{
 				if ( System.getProperty("os.name").equals("Linux")){
 					Toolkit.getDefaultToolkit().sync();
 				}
-			} catch (IOException ex) {
-				Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
-			} catch (ClassNotFoundException ex) {
-				Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
 			} catch (ClassCastException ex){
 				isEnemyDisconnected = true;
 				repaint();
-				
 				if ( System.getProperty("os.name").equals("Linux")){
 					Toolkit.getDefaultToolkit().sync();
 				}
-			}
+			} catch (IOException ex) {
+                Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
+            }
 		}
 	}
 
@@ -198,9 +192,9 @@ public class GamePlay extends JPanel{
 					validKeyCode.add(KeyEvent.VK_ENTER);
 					if (validKeyCode.contains(ke.getKeyCode())){
                         // Action Code
-                        out.writeObject(Consts.BAR_MOVE);
+                        socketIO.getOutput().writeObject(Consts.BAR_MOVE);
                         // Send data
-						out.writeObject(ke.getKeyCode());
+						socketIO.getOutput().writeObject(ke.getKeyCode());
 					}
 				} catch (Exception ex) {
 					Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
@@ -216,12 +210,10 @@ public class GamePlay extends JPanel{
 			public void mouseClicked(MouseEvent me) {
 				if (me.getX() >= width + 20 && me.getX() <= width + 20 + 150 &&
 				    me.getY() >= height - 100 && me.getY() <= height - 50){
-					System.out.println("Pause event trigger");
 					isPlay = !isPlay;
 					isInitNewGame = false;
 				}else if (me.getX() >= width + 220 && me.getX() <= width + 220 + 150 &&
 				    me.getY() >= height - 100 && me.getY() <= height - 50) {
-					System.out.println("Exit event trigger");
 					JFrame parent = (JFrame)self.getTopLevelAncestor();
 					parent.dispose();
 					System.exit(0);

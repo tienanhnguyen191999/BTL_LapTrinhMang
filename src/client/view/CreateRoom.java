@@ -65,7 +65,6 @@ public class CreateRoom extends javax.swing.JFrame {
 		}
 		
 		mapList.setModel(listMapStr);
-        System.out.println("IN2");
 		registerMapListEvent();
 	}
 
@@ -395,7 +394,6 @@ public class CreateRoom extends javax.swing.JFrame {
                 if (!arg0.getValueIsAdjusting()) {
 					try {
 						String mapName = mapList.getSelectedValue().trim();
-						System.out.println(mapName);
 						Class<?> clazz = Class.forName("map." + mapName);
 						selectedMap = (Map) clazz.newInstance();
                         

@@ -73,6 +73,9 @@ public class ClientThread extends Thread implements Serializable{
                     case Consts.UPDATE_WAITING_ROOM:
                         this.updateWaitingRoom();
                         break;
+                    case Consts.START_GAME:
+                        this.startGame();
+                        break;
                 }
             } catch (IOException ex) {
                 System.out.println("Socket Closed");
@@ -83,13 +86,33 @@ public class ClientThread extends Thread implements Serializable{
         }
 	}
     
+    private void startGame() {
+        try {
+            Room newRoom = (Room) socketIO.getInput().readObject();
+            
+            WaitingRoomThread roomThread = this.getWaitingRoomThreadByRoomName(newRoom.getName());
+            GamePlayThread gamePlay = new GamePlayThread();
+            gamePlay.addPlayterToRoom(roomThread.getP1());
+            gamePlay.addPlayterToRoom(roomThread.getP2());
+            gamePlay.setMap(roomThread.getRoom().getMap());
+            gamePlay.start(); // Active Thread
+            
+            
+            roomThread.getP1().getSocketIO().getOutput().writeObject(Consts.START_GAME);
+            roomThread.getP2().getSocketIO().getOutput().writeObject(Consts.START_GAME);
+            gamePlay.startGame();
+            
+        } catch (IOException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     private void updateWaitingRoom() {
         try {
             // Update Room To Host
-            System.out.println("updateWaitingRoom");
-            System.out.println(Thread.currentThread().getName());
             Room newRoom = (Room) socketIO.getInput().readObject();
-            
             socketIO.getOutput().writeObject(newRoom);
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -141,11 +164,8 @@ public class ClientThread extends Thread implements Serializable{
     private void createNewRoom() {
         try {
             Room newRoom = (Room)socketIO.getInput().readObject();
-            System.out.println("newRoom"+ newRoom.getName() + "\nMap Link: "+newRoom.getMap().getMapInfo().getImagePreviewPath());
             // Check room_name is unique
-            System.out.println("LIST ROOM REGISTERED");
             for (Room tmp : listRoom){
-                System.out.println(tmp.getName());
                 if (newRoom.getName().trim().toLowerCase()
                     .equals(tmp.getName().trim().toLowerCase())){
                     socketIO.getOutput().writeObject(false);
@@ -184,13 +204,13 @@ public class ClientThread extends Thread implements Serializable{
                     socketIO.getOutput().writeObject(room);
                     
                     // Add to WaitingRoomThread
-                    WaitingRoomThread roomThread = this.searchWaitingRoomThreadByRoomName(room.getName());
+                    WaitingRoomThread roomThread = this.getWaitingRoomThreadByRoomName(room.getName());
                     roomThread.setRoom(room);
                     roomThread.setP2(this);
                     
                     // Send update action
                     roomThread.getP1().socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
-                    roomThread.getP1().socketIO.getOutput().writeObject(room);
+//                    roomThread.getP1().socketIO.getOutput().writeObject(room);
                     return;
                 }
             }
@@ -201,7 +221,7 @@ public class ClientThread extends Thread implements Serializable{
         }
     }    
 
-    private WaitingRoomThread searchWaitingRoomThreadByRoomName (String roomName) {
+    private WaitingRoomThread getWaitingRoomThreadByRoomName (String roomName) {
         for (WaitingRoomThread tmp : listRoomThread){
             if (tmp.getRoom().getName().trim().equals(roomName)){
                 return tmp;

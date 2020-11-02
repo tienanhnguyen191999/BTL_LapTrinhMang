@@ -26,5 +26,13 @@ public class Map3 extends Map implements Serializable{
 				if ( (j + i) % 2 == 0 ) mapState.getBricks()[i*12 + j].setIsDisplay(false);
 			}	
 		}
+		
+		// Map Info
+        mapInfo.setName("Map3");
+		mapInfo.setType("Small");
+		mapInfo.setDes("More Info Here: github.com/tienanhnguyen191999/BTL_LapTrinhMang");
+		mapInfo.setImagePreviewPath("/data/mapPreview/map3.png");
 	}
+	
+	
 }
