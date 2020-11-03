@@ -32,6 +32,9 @@ public class Ball extends Point implements Serializable{
 		this.speedY = speedY;
 	}
 
+	public Ball() {
+	}
+
 	public Color getColor() {
 		return color;
 	}

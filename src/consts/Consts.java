@@ -40,6 +40,9 @@ public class Consts {
 	public static final int SEND_MESSAGE = 7;
 	public static final int UPDATE_P1_BALL_COLOR = 8;
 	public static final int UPDATE_P2_BALL_COLOR = 9;
+	public static final int REMOVE_ROOM = 10;
+	public static final int ROOM_NOT_EXISTS = 11;
+	public static final int ROOM_EXISTS = 12;
 	
 	// For Gameplay Thread
 	public static final int COUNTER_BEFORE_START = 8; 

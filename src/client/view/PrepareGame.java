@@ -17,8 +17,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollBar;
 import javax.swing.text.DefaultCaret;
+import model.Ball;
 import model.Room;
 import model.SocketIO;
 import util.Utils;
@@ -31,6 +33,7 @@ public class PrepareGame extends javax.swing.JFrame {
     private Room room;
     private SocketIO socketIO;
 	private boolean isHost;
+	
 	public PrepareGame(SocketIO socketIO, Room roomInstance, boolean isHost) {
 		this.room = roomInstance;
         this.socketIO = socketIO;
@@ -61,6 +64,9 @@ public class PrepareGame extends javax.swing.JFrame {
 								case Consts.UPDATE_P2_BALL_COLOR:
 									updateP2BallColor();
 									break;
+								case Consts.REMOVE_ROOM:
+									removeHasBeenRemove();
+									break;
 							}
                         }
                     } catch (IOException ex) {
@@ -70,6 +76,12 @@ public class PrepareGame extends javax.swing.JFrame {
                     }
                 }
         }).start();
+	}
+	
+	public void removeHasBeenRemove () {
+		JOptionPane.showMessageDialog(null, "Room has been removed");
+		this.dispose();	
+		new LAN(socketIO, this.room.getP2()).setVisible(true);
 	}
 	
 	public void manualBindEvents() {
@@ -98,12 +110,7 @@ public class PrepareGame extends javax.swing.JFrame {
 					Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
 				}
 			}
-		});
-		
-		
-		
-		
-		
+		});	
 	}
 	
 	public void updateP1BallColor () {
@@ -154,7 +161,7 @@ public class PrepareGame extends javax.swing.JFrame {
 			}
 		}
 		dispose();
-		new Client(socketIO);
+		new Client(socketIO, isHost);
 	}
 	
 	public void updateWaitingRoom (){
@@ -585,10 +592,14 @@ public class PrepareGame extends javax.swing.JFrame {
             socketIO.getOutput().writeObject(Consts.START_GAME);
 			// Update ball corlor
 			
+			this.getRoom().getP1().setBall(new Ball());
+			this.getRoom().getP2().setBall(new Ball());
+
 			this.getRoom().getP1().getBall().setColor(Utils.colorMapping(cbP1BallColor.getSelectedItem().toString()));
 			this.getRoom().getP2().getBall().setColor(Utils.colorMapping(cbP2BallColor.getSelectedItem().toString()));
-			
-            socketIO.getOutput().writeObject(this.getRoom());
+
+			socketIO.getOutput().reset();
+			socketIO.getOutput().writeObject(this.getRoom());
 			btnStart.setEnabled(false); 
         } catch (IOException ex) {
             Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
@@ -596,20 +607,20 @@ public class PrepareGame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnStartActionPerformed
 	
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+		if (isHost){
+			try {
+				// Remove Room
+				socketIO.getOutput().writeObject(Consts.REMOVE_ROOM);
+			} catch (IOException ex) {
+				Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
 		this.dispose();		
 		new LAN(socketIO, this.room.getP1()).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void cbP2BallColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP2BallColorActionPerformed
-//		try {
-//			// Send action code
-//			socketIO.getOutput().writeObject(Consts.UPDATE_P2_BALL_COLOR);
-//			
-//			// Update ball corlor
-//			socketIO.getOutput().writeObject(cbP2BallColor.getSelectedItem().toString());
-//		} catch (IOException ex) {
-//			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
-//		}
+
     }//GEN-LAST:event_cbP2BallColorActionPerformed
 
     private void btnSendMessageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageActionPerformed
@@ -627,15 +638,7 @@ public class PrepareGame extends javax.swing.JFrame {
     }//GEN-LAST:event_tfMessageKeyPressed
 
     private void cbP1BallColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP1BallColorActionPerformed
-//		try {
-//			// Send action code
-//			socketIO.getOutput().writeObject(Consts.UPDATE_P1_BALL_COLOR);
-//			
-//			// Update ball corlor
-//			socketIO.getOutput().writeObject(cbP1BallColor.getSelectedItem().toString());
-//		} catch (IOException ex) {
-//			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
-//		}
+
     }//GEN-LAST:event_cbP1BallColorActionPerformed
 
 	public void sendMessage() {

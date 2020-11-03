@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.ClientState;
 import consts.Consts;
+import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 import map.*;
 
@@ -26,7 +27,7 @@ import map.*;
  */
 public class GamePlayThread extends Thread{
 	private int padding = 50;
-	private int delayTime = 5;
+	private int delayTime, speed;
 	private boolean isPlay, isInitNewGame;
 	private Map map;
 	
@@ -40,7 +41,7 @@ public class GamePlayThread extends Thread{
 	public void initNewGame (){
 		isPlay = false;
 		isInitNewGame = true;
-		
+		delayTime = (11 - speed) * 2 + 5;
 		// Init new Map
 		timer = new Timer(delayTime, handleRerenderEachTime());
 		
@@ -48,6 +49,7 @@ public class GamePlayThread extends Thread{
 		boolean isPlayer_1 = true;
 		for (ClientThread client : arr_player){
 			client.getClientState().setPoint(0);
+			Color ballColor = client.getClientState().getBall().getColor();
 			if (isPlayer_1){
 				// Init ball and bar
 				isPlayer_1 = false;
@@ -57,6 +59,7 @@ public class GamePlayThread extends Thread{
 				client.getClientState().setBar(new Bar(200, 20, 20,  Consts.GAMPLAY_WIDTH/2 - 200/2, padding - 20 ));
 				client.getClientState().setBall(new Ball(30, 1, 1, Consts.GAMPLAY_WIDTH/2 - 30/2, padding));
 			}
+			client.getClientState().getBall().setColor(ballColor);
 		}
 	}
 	
@@ -290,4 +293,12 @@ public class GamePlayThread extends Thread{
     public void setMap(Map map) {
         this.map = map;
     }
+
+	public int getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(int speed) {
+		this.speed = speed;
+	}
 }

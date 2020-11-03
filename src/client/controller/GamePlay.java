@@ -37,6 +37,7 @@ import model.SocketIO;
 public class GamePlay extends JPanel{
 	// Gameplay state
     private int width, height, padding = 50;
+	private boolean isHost;
 	private boolean isPlay;
 	
 	private boolean isInitNewGame;
@@ -51,6 +52,20 @@ public class GamePlay extends JPanel{
     // In/Out
 	private SocketIO socketIO;
 	ImageIcon disconnectedGif;
+	
+	public GamePlay(SocketIO socketIO, boolean isHost) {
+        this.socketIO = socketIO;
+		this.isHost = isHost;
+		p1 = new ClientState();
+		p2 = new ClientState();
+        isEnemyDisconnected = false;
+		isPlay = true;
+        initNewGame();
+        initGif();
+        // handle Bar move
+        addKeyListener(this.handleBarMove());
+        addMouseListener(this.handleClickEvent());
+	}
 	
 	public void initNewGame (){
 		isPlay = isGameLose = isGameWin = false;
@@ -133,7 +148,13 @@ public class GamePlay extends JPanel{
 		g.setColor(Color.RED);
 		g.setFont(new Font("serif", Font.PLAIN, 20));
 		g.drawString(p2.getName() + ": " + p2.getPoint(), Consts.GAMPLAY_WIDTH + 50, 50);
-
+		
+		// determine "your side"
+		if (!isHost){
+			g.setColor(Color.YELLOW);
+			drawCircleWithX(g, Consts.GAMPLAY_WIDTH + 20, 50 - 15, 15);
+		}
+		
 		// Disconnected
 		if (p2.isSocketClose){
 			disconnectedGif.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50, 80);
@@ -149,6 +170,12 @@ public class GamePlay extends JPanel{
 		g.setColor(Color.RED);
 		g.setFont(new Font("serif", Font.PLAIN, 20));
 		g.drawString(p1.getName() + ": " + p1.getPoint(), Consts.GAMPLAY_WIDTH + 50, Consts.GAMPLAY_HEIGHT / 2 + 50);
+		
+		// determine "your side"
+		if (isHost){
+			g.setColor(Color.YELLOW);
+			drawCircleWithX(g, Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT / 2 + 50 - 15, 15);
+		}
 			
 		// Disconnected
 		if (p1.isSocketClose){
@@ -168,17 +195,11 @@ public class GamePlay extends JPanel{
 		g.drawString("Exit", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 100 + 32);
 	}
 	
-	public GamePlay(SocketIO socketIO) {
-        this.socketIO = socketIO;
-		p1 = new ClientState();
-		p2 = new ClientState();
-        isEnemyDisconnected = false;
-		isPlay = true;
-        initNewGame();
-        initGif();
-        // handle Bar move
-        addKeyListener(this.handleBarMove());
-        addMouseListener(this.handleClickEvent());
+	public void drawCircleWithX (Graphics g, int startX, int startY, int padding) {
+		g.drawLine(startX, startY, startX + padding, startY + padding);
+		g.drawLine(startX + padding, startY, startX , startY + padding);
+		g.drawLine(startX + padding / 2, startY, startX + padding / 2, startY + padding);
+		g.drawLine(startX, startY  + padding / 2, startX + padding, startY + padding / 2 );
 	}
 	
 	public void play () {
@@ -187,7 +208,7 @@ public class GamePlay extends JPanel{
 				Integer actionCode = (Integer) socketIO.getInput().readObject();
 				switch (actionCode){
 					case Consts.COUNTER_BEFORE_START:
-						drawCounterBeforeStart();
+						handleCounterBeforeStart();
 						break;
 					case Consts.UPDATE_GAMEPLAY_STATE:
 						updateGamePlayState();
@@ -220,7 +241,7 @@ public class GamePlay extends JPanel{
 		customRepaint();
 	}
 	
-	public void drawCounterBeforeStart(){
+	public void handleCounterBeforeStart(){
 		try {
 			counter = (Integer) socketIO.getInput().readObject();
 			customRepaint();

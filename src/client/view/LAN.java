@@ -33,6 +33,7 @@ public class LAN extends javax.swing.JFrame {
     private ArrayList<Room> listRoomWaiting;
     private Room selectedRoom;
 	private SocketIO socketIO;
+	private DefaultListModel listMapStr;
 	
 	public LAN(SocketIO socketIO, ClientState player) {
         this.player = player;
@@ -42,23 +43,26 @@ public class LAN extends javax.swing.JFrame {
 	}
 
     public void initMapData(){
-        try {
+		listMapStr = new DefaultListModel();
+		getListRoom();
+		this.registerMapListEvent();
+		jlistRoomWaiting.setModel(listMapStr);
+    }
+	
+	public void getListRoom () {
+		try {
             socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
             listRoomWaiting = (ArrayList<Room>)socketIO.getInput().readObject();
-            DefaultListModel listMapStr = new DefaultListModel();
-            
             for (Room room : listRoomWaiting){
-                listMapStr.addElement(room.getName());
-            }
-            
-            jlistRoomWaiting.setModel(listMapStr);
-            this.registerMapListEvent();
+				String lastRoomName = room.getName() + " ("+ (room.getP2() != null ? 2 : 1)  +"/2)";
+                listMapStr.addElement(lastRoomName);
+            }  
         } catch (IOException ex) {
             Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
         } 
-    }
+	}
     
 	/**
 	 * This method is called from within the constructor to initialize the form.
@@ -384,6 +388,11 @@ public class LAN extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "No Name Provived!!!");
                 return;
             }
+			
+			if (selectedRoom.getP2() != null) {
+				JOptionPane.showMessageDialog(null, "This Room Reach Maximum!!!");
+                return;
+			}
             
             // Action code
             socketIO.getOutput().writeObject(Consts.JOIN_ROOM);
@@ -392,7 +401,20 @@ public class LAN extends javax.swing.JFrame {
             socketIO.getOutput().writeObject(player);
             // Receive new room state
             Room joinedRoom = (Room) socketIO.getInput().readObject();
-            
+			int status = (Integer) socketIO.getInput().readObject();
+            if (status == Consts.ROOM_NOT_EXISTS){
+				JOptionPane.showMessageDialog(null, "Room not exsits");				
+				DefaultListModel newListMap = new DefaultListModel();
+				
+				socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
+				listRoomWaiting = (ArrayList<Room>)socketIO.getInput().readObject();
+				for (Room room : listRoomWaiting){
+					String lastRoomName = room.getName() + " ("+ (room.getP2() != null ? 2 : 1)  +"/2)";
+					newListMap.addElement(lastRoomName);
+				}
+				jlistRoomWaiting.setModel(newListMap);
+				return;
+			}
             this.dispose();
             new PrepareGame(socketIO, joinedRoom, false).setVisible(true);
         } catch (IOException ex) {
@@ -416,7 +438,6 @@ public class LAN extends javax.swing.JFrame {
             }
             this.dispose();
             new CreateRoom(socketIO, player).setVisible(true);
-//            this.dispose();
         } catch (Exception ex) {
             Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -451,18 +472,20 @@ public class LAN extends javax.swing.JFrame {
             @Override
             public void valueChanged(ListSelectionEvent arg0) {
                 if (!arg0.getValueIsAdjusting()) {
-					String roomName = jlistRoomWaiting.getSelectedValue().trim();
-					selectedRoom = getRoomByName(roomName);
-                        
-					ImageIcon icon = new ImageIcon(getClass().getResource(selectedRoom.getMap().getMapInfo().getImagePreviewPath())); 
-					Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
-					ImageIcon result = new ImageIcon(resize);
-					imagePreview.setIcon(result);
-                        
-                    tfRoomCreator.setText(selectedRoom.getP1().getName());
-                    tfRoomDes.setText(selectedRoom.getMap().getMapInfo().getDes());
-                    tfRoomName.setText(selectedRoom.getName());
-                    tfRoomSpeed.setText(new Integer(selectedRoom.getSpeed()).toString());
+					if (jlistRoomWaiting.getSelectedValue() != null){
+						String roomName = jlistRoomWaiting.getSelectedValue().trim().split(" ")[0];
+						selectedRoom = getRoomByName(roomName);
+
+						ImageIcon icon = new ImageIcon(getClass().getResource(selectedRoom.getMap().getMapInfo().getImagePreviewPath())); 
+						Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
+						ImageIcon result = new ImageIcon(resize);
+						imagePreview.setIcon(result);
+
+						tfRoomCreator.setText(selectedRoom.getP1().getName());
+						tfRoomDes.setText(selectedRoom.getMap().getMapInfo().getDes());
+						tfRoomName.setText(selectedRoom.getName());
+						tfRoomSpeed.setText(new Integer(selectedRoom.getSpeed()).toString());
+					}
                 }
             }
         });
@@ -470,7 +493,7 @@ public class LAN extends javax.swing.JFrame {
     
     private Room getRoomByName(String roomName) {
         for (Room room : listRoomWaiting){
-            if (room.getName() == roomName){
+            if (room.getName().equals(roomName)){
                 return room;
             }
         }
