@@ -93,6 +93,9 @@ public class ClientThread extends Thread implements Serializable{
 					case Consts.REMOVE_ROOM:
 						handleRemoveRoom();
 						break;
+					case Consts.OUT_ROOM:
+						handleOutRoom();
+						break;
                 }
             } catch (IOException ex) {
                 System.out.println("Socket [ "+ Thread.currentThread().getName() +" ] Closed");
@@ -102,6 +105,17 @@ public class ClientThread extends Thread implements Serializable{
                 Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+	}
+	
+	public void handleOutRoom () {
+		try {
+			selectedRoomThread.setP2(null);
+			selectedRoomThread.getP1().getSocketIO().getOutput().reset();
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.OUT_ROOM);
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(selectedRoom);
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
 	}
 	
 	public void handleRemoveRoom () {
