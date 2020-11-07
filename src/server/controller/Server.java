@@ -12,7 +12,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.Timer;
 import model.Room;
 
 /**
@@ -20,12 +19,14 @@ import model.Room;
  * @author tienanh
  */
 public class Server {
+	private ServerSocket server;
+
+	// Share data
 	private ArrayList<Room> listRoom;
     private ArrayList<ClientThread> listPlayer;
     private ArrayList<WaitingRoomThread> listWaitingRoom;
     private ArrayList<GamePlayThread> listGamePlay;
-	ServerSocket server;
-		
+
 	public Server () {
 		try {
 			server = new ServerSocket(Consts.PORT);

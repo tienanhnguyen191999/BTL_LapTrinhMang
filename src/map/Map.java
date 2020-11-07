@@ -110,7 +110,6 @@ public abstract class Map implements Serializable{
 					return Consts.BOTTOM;
 				}
 			}
-			System.out.println("END LEVEL");
 		}
 		return -1;
 	}

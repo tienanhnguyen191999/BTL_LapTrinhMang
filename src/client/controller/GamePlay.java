@@ -37,7 +37,14 @@ import model.SocketIO;
 public class GamePlay extends JPanel{
 	// Gameplay state
     private int width, height, padding = 50;
-	private boolean isPlay, isInitNewGame, isGameOver = true;
+	private boolean isHost;
+	private boolean isPlay;
+	
+	private boolean isInitNewGame;
+	private Integer counter = 0;
+	
+	private boolean isGameLose, isGameWin;
+	
 	private boolean isEnemyDisconnected, isShow = false;
 	private MapState mapState;
 	private ClientState p1, p2;
@@ -45,93 +52,10 @@ public class GamePlay extends JPanel{
     // In/Out
 	private SocketIO socketIO;
 	ImageIcon disconnectedGif;
-	@Override
-	protected void paintComponent(Graphics g) {
-		super.paintComponent(g); 
-		
-		if (isPlay){
-			// Ball p1
-			g.setColor(Color.RED);
-			g.fillOval(p1.getBall().getX(), p1.getBall().getY(), p1.getBall().getRadius(), p1.getBall().getRadius());
-
-			// Bar p1
-			g.setColor(Color.GREEN);
-			g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());
-
-
-			// Ball p2
-			g.setColor(Color.BLUE);
-			g.fillOval(p2.getBall().getX(), p2.getBall().getY(), p2.getBall().getRadius(), p2.getBall().getRadius());
-
-			// Bar p2
-			g.setColor(Color.GREEN);
-			g.fillRect(p2.getBar().getX(), p2.getBar().getY(), p2.getBar().getWidth(), p2.getBar().getHeight());
-
-			// Draw brick
-			for (int i = 0 ; i < 3 ; i++) {
-				for (int j = 0; j < 12; j++){
-					Brick curBrick = this.mapState.getBricks()[i*12 + j];
-					if ( curBrick.getIsDisplay()){
-						g.setColor(Color.YELLOW);
-						g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);
-					}
-				}
-			}
-
-			// Line separate 
-			g.setColor(Color.WHITE);
-			g.drawLine(Consts.GAMPLAY_WIDTH, 0, Consts.GAMPLAY_WIDTH, Consts.GAMPLAY_HEIGHT);
-			
-			// Menu
-			// Point p2
-			g.setColor(Color.RED);
-			g.setFont(new Font("serif", Font.PLAIN, 20));
-			g.drawString(p2.getName() + ": " + p2.getPoint(), Consts.GAMPLAY_WIDTH + 50, 50);
-
-			// Disconnected
-			if (p2.isSocketClose){
-				disconnectedGif.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50, 80);
-				g.setColor(Color.YELLOW);
-				g.drawString("Disconnected", Consts.GAMPLAY_WIDTH + 110, 110);
-			}
-			
-			// Line separate
-			g.setColor(Color.WHITE);
-			g.drawLine(Consts.GAMPLAY_WIDTH, Consts.GAMPLAY_HEIGHT / 2, Consts.SCREEN_WIDTH, Consts.GAMPLAY_HEIGHT / 2);
-
-			// Point p1
-			g.setColor(Color.RED);
-			g.setFont(new Font("serif", Font.PLAIN, 20));
-			g.drawString(p1.getName() + ": " + p1.getPoint(), Consts.GAMPLAY_WIDTH + 50, Consts.GAMPLAY_HEIGHT / 2 + 50);
-			
-			// Disconnected
-			if (p1.isSocketClose){
-				disconnectedGif.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50,  Consts.GAMPLAY_HEIGHT / 2 + 80);
-				g.setColor(Color.YELLOW);
-				g.drawString("Disconnected", Consts.GAMPLAY_WIDTH + 110, Consts.GAMPLAY_HEIGHT / 2 + 110);
-			}
-			// Pause BTN 
-			g.setColor(Color.RED);
-			g.drawRect(Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT - 100, 150, 50);
-			g.drawString(isInitNewGame ? "Play" :
-				isPlay ? "Pause" : "UnPause", Consts.GAMPLAY_WIDTH + 20 + (isInitNewGame ? 45 : isPlay ? 45 : 30), Consts.GAMPLAY_HEIGHT - 100 + 32);
-
-			// Pause BTN 
-			g.setColor(Color.RED);
-			g.drawRect(Consts.GAMPLAY_WIDTH + 20 + 150  + 50, Consts.GAMPLAY_HEIGHT - 100, 150, 50);
-			g.drawString("Exit", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 100 + 32);
-
-			if (isGameOver){
-				g.setColor(Color.RED);
-				g.setFont(new Font("serif", Font.PLAIN, 50));
-				g.drawString("GAME OVER",Consts.GAMPLAY_WIDTH / 2 - 50*3, Consts.GAMPLAY_HEIGHT / 2);
-			}
-			g.dispose();
-		}
-	}
 	
-	public GamePlay(SocketIO socketIO) {
+	public GamePlay(SocketIO socketIO, boolean isHost) {
         this.socketIO = socketIO;
+		this.isHost = isHost;
 		p1 = new ClientState();
 		p2 = new ClientState();
         isEnemyDisconnected = false;
@@ -143,24 +67,161 @@ public class GamePlay extends JPanel{
         addMouseListener(this.handleClickEvent());
 	}
 	
+	public void initNewGame (){
+		isPlay = isGameLose = isGameWin = false;
+		isInitNewGame = true;
+		
+		// Init Jpanel
+		setSize(Consts.SCREEN_WIDTH, Consts.GAMPLAY_HEIGHT);
+		setBackground(Color.BLACK);
+		setFocusable(true);
+		setVisible(true);
+	}
+	
+	@Override
+	protected void paintComponent(Graphics g) {
+		if (this.isPlay){
+			super.paintComponent(g); 
+			drawBasicState(g);
+			drawRightMenu(g);
+			drawGamePlayState(g);
+			g.dispose();
+		}
+	}
+	
+	public void drawGamePlayState (Graphics g) {
+		if (isGameLose){
+			g.setColor(Color.RED);
+			g.setFont(new Font("serif", Font.PLAIN, 50));
+			g.drawString("GAME OVER",Consts.GAMPLAY_WIDTH / 2 - 50*3, Consts.GAMPLAY_HEIGHT / 2);
+		}
+		
+		if (isGameWin){
+			g.setColor(Color.GREEN);
+			g.setFont(new Font("serif", Font.PLAIN, 50));
+			g.drawString("GAME WIN",Consts.GAMPLAY_WIDTH / 2 - 50*3, Consts.GAMPLAY_HEIGHT / 2);
+		}
+		
+		if (isInitNewGame){
+			g.setColor(Color.RED);
+			g.setFont(new Font("serif", Font.PLAIN, 200));
+			g.drawString(counter.toString(), Consts.GAMPLAY_WIDTH / 2 - 100, Consts.GAMPLAY_HEIGHT / 2);
+		}
+	}
+	
+	public void drawBasicState (Graphics g) {
+		// Ball p1
+		g.setColor(p1.getBall().getColor());
+		g.fillOval(p1.getBall().getX(), p1.getBall().getY(), p1.getBall().getRadius(), p1.getBall().getRadius());
+		// Bar p1
+		g.setColor(Color.GREEN);
+		g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());
+
+
+		// Ball p2
+		g.setColor(p2.getBall().getColor());
+		g.fillOval(p2.getBall().getX(), p2.getBall().getY(), p2.getBall().getRadius(), p2.getBall().getRadius());
+
+		// Bar p2
+		g.setColor(Color.GREEN);
+		g.fillRect(p2.getBar().getX(), p2.getBar().getY(), p2.getBar().getWidth(), p2.getBar().getHeight());
+
+		// Draw brick
+		for (int i = 0 ; i < 3 ; i++) {
+			for (int j = 0; j < 12; j++){
+				Brick curBrick = this.mapState.getBricks()[i*12 + j];
+				if ( curBrick.getIsDisplay()){
+					g.setColor(Color.YELLOW);
+					g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);
+				}
+			}
+		}
+	}
+	
+	public void drawRightMenu (Graphics g) {
+		// Line separate 
+		g.setColor(Color.WHITE);
+		g.drawLine(Consts.GAMPLAY_WIDTH, 0, Consts.GAMPLAY_WIDTH, Consts.GAMPLAY_HEIGHT);
+			
+		// Menu
+		// Point p2
+		g.setColor(Color.RED);
+		g.setFont(new Font("serif", Font.PLAIN, 20));
+		g.drawString(p2.getName() + ": " + p2.getPoint(), Consts.GAMPLAY_WIDTH + 50, 50);
+		
+		// determine "your side"
+		if (!isHost){
+			g.setColor(Color.YELLOW);
+			drawCircleWithX(g, Consts.GAMPLAY_WIDTH + 20, 50 - 15, 15);
+		}
+		
+		// Disconnected
+		if (p2.isSocketClose){
+			disconnectedGif.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50, 80);
+			g.setColor(Color.YELLOW);
+			g.drawString("Disconnected", Consts.GAMPLAY_WIDTH + 110, 110);
+		}
+			
+		// Line separate
+		g.setColor(Color.WHITE);
+		g.drawLine(Consts.GAMPLAY_WIDTH, Consts.GAMPLAY_HEIGHT / 2, Consts.SCREEN_WIDTH, Consts.GAMPLAY_HEIGHT / 2);
+
+		// Point p1
+		g.setColor(Color.RED);
+		g.setFont(new Font("serif", Font.PLAIN, 20));
+		g.drawString(p1.getName() + ": " + p1.getPoint(), Consts.GAMPLAY_WIDTH + 50, Consts.GAMPLAY_HEIGHT / 2 + 50);
+		
+		// determine "your side"
+		if (isHost){
+			g.setColor(Color.YELLOW);
+			drawCircleWithX(g, Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT / 2 + 50 - 15, 15);
+		}
+			
+		// Disconnected
+		if (p1.isSocketClose){
+			disconnectedGif.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50,  Consts.GAMPLAY_HEIGHT / 2 + 80);
+			g.setColor(Color.YELLOW);
+			g.drawString("Disconnected", Consts.GAMPLAY_WIDTH + 110, Consts.GAMPLAY_HEIGHT / 2 + 110);
+		}
+		// Pause BTN 
+		g.setColor(Color.RED);
+		g.drawRect(Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT - 100, 150, 50);
+		g.drawString(isInitNewGame ? "Play" :
+				isPlay ? "Pause" : "UnPause", Consts.GAMPLAY_WIDTH + 20 + (isInitNewGame ? 45 : isPlay ? 45 : 30), Consts.GAMPLAY_HEIGHT - 100 + 32);
+
+		// Pause BTN 
+		g.setColor(Color.RED);
+		g.drawRect(Consts.GAMPLAY_WIDTH + 20 + 150  + 50, Consts.GAMPLAY_HEIGHT - 100, 150, 50);
+		g.drawString("Exit", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 100 + 32);
+	}
+	
+	public void drawCircleWithX (Graphics g, int startX, int startY, int padding) {
+		g.drawLine(startX, startY, startX + padding, startY + padding);
+		g.drawLine(startX + padding, startY, startX , startY + padding);
+		g.drawLine(startX + padding / 2, startY, startX + padding / 2, startY + padding);
+		g.drawLine(startX, startY  + padding / 2, startX + padding, startY + padding / 2 );
+	}
+	
 	public void play () {
 		while (true){
 			try {
-				p1 = (ClientState)socketIO.getInput().readObject();
-				p2 = (ClientState)socketIO.getInput().readObject();
-				this.mapState = (MapState)socketIO.getInput().readObject();
-				isPlay = true;
-				
-				repaint();
-				
-				if ( System.getProperty("os.name").equals("Linux")){
-					Toolkit.getDefaultToolkit().sync();
-				}
-			} catch (ClassCastException ex){
-				isEnemyDisconnected = true;
-				repaint();
-				if ( System.getProperty("os.name").equals("Linux")){
-					Toolkit.getDefaultToolkit().sync();
+				Integer actionCode = (Integer) socketIO.getInput().readObject();
+				switch (actionCode){
+					case Consts.COUNTER_BEFORE_START:
+						handleCounterBeforeStart();
+						break;
+					case Consts.UPDATE_GAMEPLAY_STATE:
+						updateGamePlayState();
+						break;
+					case Consts.OTHER_PLAYER_LOST_CONNECTION:
+						otherPlayerLostConnection();
+						break;
+					case Consts.GAME_LOSE:
+						handleGameOver();
+						break;
+					case Consts.GAME_WIN:
+						handleGameWin();
+						break;
 				}
 			} catch (IOException ex) {
                 Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
@@ -169,16 +230,56 @@ public class GamePlay extends JPanel{
             }
 		}
 	}
-
-	public void initNewGame (){
-		isPlay = isGameOver = false;
-		isInitNewGame = true;
-		
-		// Init Jpanel
-		setSize(Consts.SCREEN_WIDTH, Consts.GAMPLAY_HEIGHT);
-		setBackground(Color.BLACK);
-		setFocusable(true);
-		setVisible(true);
+	
+	public void handleGameWin () {
+		isGameWin = true;
+		customRepaint();
+	}
+	
+	public void handleGameOver () {
+		isGameLose = true;
+		customRepaint();
+	}
+	
+	public void handleCounterBeforeStart(){
+		try {
+			counter = (Integer) socketIO.getInput().readObject();
+			customRepaint();
+			if (counter == 0) isInitNewGame = false;
+		} catch (IOException ex) {
+			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void otherPlayerLostConnection () {
+		updateGamePlayState();
+		isEnemyDisconnected = true;
+		customRepaint();
+	}
+	
+	public void customRepaint() {
+		repaint();
+		// For linux system.
+		if ( System.getProperty("os.name").equals("Linux")){
+				Toolkit.getDefaultToolkit().sync();
+		}
+	}
+	
+	public void updateGamePlayState () {
+		try {
+			p1 = (ClientState)socketIO.getInput().readObject();
+			p2 = (ClientState)socketIO.getInput().readObject();
+			this.mapState = (MapState)socketIO.getInput().readObject();
+			isPlay = true;
+//			isInitNewGame = false;
+			customRepaint();
+		} catch (IOException ex) {
+			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
+		}
 	}
 	
 	private KeyAdapter handleBarMove() {
@@ -208,6 +309,7 @@ public class GamePlay extends JPanel{
 		return new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent me) {
+				System.out.println(me);
 				if (me.getX() >= width + 20 && me.getX() <= width + 20 + 150 &&
 				    me.getY() >= height - 100 && me.getY() <= height - 50){
 					isPlay = !isPlay;

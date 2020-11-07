@@ -5,6 +5,7 @@
  */
 package model;
 
+import java.awt.Color;
 import java.io.Serializable;
 
 /**
@@ -14,6 +15,7 @@ import java.io.Serializable;
 public class Ball extends Point implements Serializable{
 	private int radius;
 	private int speedX, speedY;
+	private Color color;
 
 	/**
 	 *
@@ -30,6 +32,16 @@ public class Ball extends Point implements Serializable{
 		this.speedY = speedY;
 	}
 
+	public Ball() {
+	}
+
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
 	/**
 	 *
 	 * @return

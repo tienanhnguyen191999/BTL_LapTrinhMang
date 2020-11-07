@@ -18,9 +18,11 @@ import model.SocketIO;
  */
 public class Client {
     private SocketIO socketIO;
-
-    public Client(SocketIO socketIO) {
+	private boolean isHost;
+	
+    public Client(SocketIO socketIO, boolean isHost) {
         this.socketIO = socketIO;
+		this.isHost = isHost;
         
         // MainFrame
 		JFrame mainFrame = new JFrame("Brick Breaker");
@@ -30,7 +32,7 @@ public class Client {
 		mainFrame.setVisible(true);
         
         // GamePlay
-		GamePlay gamePlay = new GamePlay(socketIO);
+		GamePlay gamePlay = new GamePlay(socketIO, isHost);
 		mainFrame.add(gamePlay);
 		gamePlay.requestFocus();
 		gamePlay.play();
