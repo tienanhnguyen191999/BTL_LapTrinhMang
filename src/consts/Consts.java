@@ -20,8 +20,15 @@ public class Consts {
 	public static final int GAMPLAY_WIDTH = 1200;
 	public static final int GAMPLAY_HEIGHT = 800;
 	
-	public static final int BRICK_WIDTH = 80;
-	public static final int BRICK_HEIGHT = 30;
+	// Default scale = 1
+	public static final int BRICK_WIDTH = 40;
+	public static final int BRICK_HEIGHT = 15;
+	public static final int BAR_WIDTH = 100;
+	public static final int BAR_HEIGHT = 10;
+	public static final int BALL_RADIUS = 15;
+	
+	// Default Speed
+	public static final int BAR_SPEED = 20;
 	
 	public static final int TOP = 1;
 	public static final int RIGHT = 2;

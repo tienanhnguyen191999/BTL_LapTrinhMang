@@ -10,6 +10,7 @@ import javax.swing.JFrame;
 import consts.Consts;
 import java.io.IOException;
 import consts.Consts;
+import java.awt.Dimension;
 import model.SocketIO;
 
 /**
@@ -26,10 +27,11 @@ public class Client {
         
         // MainFrame
 		JFrame mainFrame = new JFrame("Brick Breaker");
-		mainFrame.setSize(Consts.SCREEN_WIDTH, Consts.SCREEN_HEIGHT);
+		mainFrame.getContentPane().setPreferredSize(new Dimension(Consts.SCREEN_WIDTH, Consts.SCREEN_HEIGHT));
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setLocationRelativeTo(null);
 		mainFrame.setVisible(true);
+		mainFrame.pack();
         
         // GamePlay
 		GamePlay gamePlay = new GamePlay(socketIO, isHost);
