@@ -12,7 +12,6 @@ package consts;
 public class Consts {
 	public static final String IP_HOST = "localhost";
 	public static final int PORT = 1107;
-	public static final int MAX_PLAYER = 2;
 	
 	public static final int SCREEN_WIDTH = 1600;
 	public static final int SCREEN_HEIGHT = 800;
@@ -38,19 +37,23 @@ public class Consts {
 	public static final int TOTAL_MAP = 10;
     
     // For thread Listening action
-    public static final int CREATE_ROOM_CODE = 1;
-    public static final int BAR_MOVE = 2;
-    public static final int GET_LIST_ROOM = 3;
-    public static final int JOIN_ROOM = 4;
-    public static final int UPDATE_WAITING_ROOM = 5;
-    public static final int START_GAME = 6; 
-	public static final int SEND_MESSAGE = 7;
-	public static final int UPDATE_P1_BALL_COLOR = 8;
-	public static final int UPDATE_P2_BALL_COLOR = 9;
-	public static final int REMOVE_ROOM = 10;
-	public static final int OUT_ROOM = 11;
-	public static final int ROOM_NOT_EXISTS = 12;
-	public static final int ROOM_EXISTS = 13;
+    public static final int CREATE_ROOM_CODE = 101;
+    public static final int BAR_MOVE = 102;
+    public static final int GET_LIST_ROOM = 103;
+    public static final int JOIN_ROOM = 104;
+    public static final int UPDATE_WAITING_ROOM = 105;
+    public static final int START_GAME = 106; 
+	public static final int SEND_MESSAGE = 107;
+	public static final int UPDATE_P1_BALL_COLOR = 108;
+	public static final int UPDATE_P2_BALL_COLOR = 109;
+	public static final int REMOVE_ROOM = 110;
+	public static final int OUT_ROOM = 111;
+	public static final int ROOM_NOT_EXISTS = 112;
+	public static final int ROOM_EXISTS = 113;
+	public static final int GAME_PAUSE = 114;
+	public static final int GAME_UNPAUSE = 115;
+	public static final int SET_PLAYER_NAME = 116;
+	public static final int UPDATE_PLAYER_NAME = 117;
 	
 	// For Gameplay Thread
 	public static final int COUNTER_BEFORE_START = 8; 

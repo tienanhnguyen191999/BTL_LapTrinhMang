@@ -23,7 +23,7 @@ public class Server {
 
 	// Share data
 	private ArrayList<Room> listRoom;
-    private ArrayList<ClientThread> listPlayer;
+    private ArrayList<String> listPlayer;
     private ArrayList<WaitingRoomThread> listWaitingRoom;
     private ArrayList<GamePlayThread> listGamePlay;
 
@@ -32,7 +32,7 @@ public class Server {
 			server = new ServerSocket(Consts.PORT);
             
             listRoom = new ArrayList<Room>();
-            listPlayer = new ArrayList<ClientThread>();
+            listPlayer = new ArrayList<String>();
             listWaitingRoom = new ArrayList<WaitingRoomThread>();
             listGamePlay = new ArrayList<GamePlayThread>();
             
@@ -52,10 +52,7 @@ public class Server {
 		while (true) {
 			try {
 				Socket instance = server.accept();
-				
-                ClientThread player = new ClientThread(listRoom, listWaitingRoom, instance);
-                listPlayer.add(player);
-				player.start();
+                new ClientThread(listPlayer, listRoom, listWaitingRoom, listGamePlay, instance).start();
 			} catch (IOException ex) {
 				Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
 			}

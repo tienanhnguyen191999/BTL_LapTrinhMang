@@ -186,7 +186,8 @@ public class Game extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         ClientState player = new ClientState();
         SocketIO socketIO = this.initSocketIO();
-        new LAN(socketIO, player).setVisible(true);
+		boolean isRegisterName = false;
+        new LAN(socketIO, player, isRegisterName).setVisible(true);
         this.dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
 

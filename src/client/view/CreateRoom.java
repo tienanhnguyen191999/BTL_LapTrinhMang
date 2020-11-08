@@ -392,6 +392,7 @@ public class CreateRoom extends javax.swing.JFrame {
             // 2. Send Data
             Room newRoom = new Room();
             newRoom.setP1(player);
+			System.out.println("Player: " + player.getName());
             newRoom.setMap(selectedMap);
             newRoom.setName(tfRoomName.getText().trim());
             newRoom.setSpeed(jsliderSpeed.getValue());
@@ -443,7 +444,8 @@ public class CreateRoom extends javax.swing.JFrame {
 	
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		this.dispose();
-		new LAN(socketIO, player).setVisible(true);
+		boolean isRegisterName = true;
+		new LAN(socketIO, player, isRegisterName).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
