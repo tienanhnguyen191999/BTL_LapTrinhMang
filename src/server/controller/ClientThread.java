@@ -20,6 +20,7 @@ import model.Room;
 import consts.Consts;
 import java.awt.Color;
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 import model.SocketIO;
 import util.Utils;
 
@@ -33,24 +34,31 @@ public class ClientThread extends Thread implements Serializable{
 	
 	private Room selectedRoom;
 	private WaitingRoomThread selectedRoomThread;
+	private GamePlayThread selectedGamePlay;
+	
     private ArrayList<Room> listRoom;
+	private ArrayList<String> listPlayer;
     private ArrayList<WaitingRoomThread> listRoomThread;
+	private ArrayList<GamePlayThread> listGamePlay;
 	
-	
-	public ClientThread(ArrayList<Room> listRoom, 
-                        ArrayList<WaitingRoomThread> listRoomThread,
-                        Socket socket) {
+	public ClientThread(
+			ArrayList<String> listPlayer, 
+			ArrayList<Room> listRoom, 
+			ArrayList<WaitingRoomThread> listRoomThread,
+			ArrayList<GamePlayThread> listGamePlay,
+            Socket socket) 
+		{
 		try {
             this.listRoom = listRoom;
             this.listRoomThread = listRoomThread;
-            
+			this.listGamePlay= listGamePlay;
+			this.listPlayer = listPlayer;
+			
+            this.state = new ClientState();
             this.socketIO = new SocketIO();
 			this.socketIO.setSocket(socket);
 			this.socketIO.setInput(new ObjectInputStream(socket.getInputStream()));
             this.socketIO.setOutput(new ObjectOutputStream(socket.getOutputStream()));
-            
-            state = new ClientState();
-			
 		} catch (IOException ex) {
 			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -96,6 +104,18 @@ public class ClientThread extends Thread implements Serializable{
 					case Consts.OUT_ROOM:
 						handleOutRoom();
 						break;
+					case Consts.GAME_PAUSE:
+						handleGamePause();
+						break;
+					case Consts.GAME_UNPAUSE:
+						handleGameUnPause();
+						break;
+					case Consts.SET_PLAYER_NAME:
+						setPlayerName();
+						break;
+					case Consts.UPDATE_PLAYER_NAME:
+						updatePlayerName();
+						break;
                 }
             } catch (IOException ex) {
                 System.out.println("Socket [ "+ Thread.currentThread().getName() +" ] Closed");
@@ -105,6 +125,92 @@ public class ClientThread extends Thread implements Serializable{
                 Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+	}
+	
+	public void updatePlayerName () {
+		try {
+			int index = 0;
+			int save_index = 0;
+			String name = (String) socketIO.getInput().readObject();
+			for (String tmp : listPlayer){
+				if (tmp.trim().toLowerCase().equals(this.state.getName().trim().toLowerCase())){
+					save_index = index;
+				}else if( tmp.trim().toLowerCase().equals(name.trim().toLowerCase())){
+					// Name is regitered
+					socketIO.getOutput().writeObject(false);
+					return;
+				}
+				index ++;
+			}
+			socketIO.getOutput().writeObject(true);
+			this.state.setName(name);
+			listPlayer.set(save_index, name.trim().toLowerCase());
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void setPlayerName () { 
+		try {
+			String name = (String) socketIO.getInput().readObject();
+			for (String tmp : listPlayer){
+				System.out.println("tmp.getClientState().getName(): " + tmp);
+				if (tmp.trim().toLowerCase().equals(name.trim().toLowerCase())){
+					// Name is regitered
+					socketIO.getOutput().writeObject(false);
+					return;
+				}
+			}
+			// Pass
+			socketIO.getOutput().writeObject(true);
+			this.state.setName(name);
+			listPlayer.add(name.trim().toLowerCase());
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void handleGameUnPause () {		
+		try {
+			if (selectedGamePlay == null){
+				System.out.println("this.state.getName(): "+ this.state.getName());
+				selectedGamePlay = this.getGamePlayByPlayerName(this.state.getName());
+			}
+			
+			for (int i = 3 ; i >= 0 ;i--){
+				selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.COUNTER_BEFORE_START);
+				selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.COUNTER_BEFORE_START);
+				selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(i);			
+				selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(i);
+				TimeUnit.SECONDS.sleep(1);
+			}
+			
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.GAME_UNPAUSE);
+			selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.GAME_UNPAUSE);
+			selectedGamePlay.playGame();
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (InterruptedException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void handleGamePause () {
+		try {
+			if (selectedGamePlay == null){
+				System.out.println("this.state.getName(): PAuse: "+ this.state.getName());
+				selectedGamePlay = this.getGamePlayByPlayerName(this.state.getName());
+			}
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.GAME_PAUSE);
+			selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.GAME_PAUSE);
+			selectedGamePlay.pauseGame();
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
 	}
 	
 	public void handleOutRoom () {
@@ -200,17 +306,19 @@ public class ClientThread extends Thread implements Serializable{
 			selectedRoomThread.getP1().setClientState(newRoom.getP1());
 			selectedRoomThread.getP2().setClientState(newRoom.getP2());
             
-			GamePlayThread gamePlay = new GamePlayThread();
-            gamePlay.addPlayterToRoom(selectedRoomThread.getP1());
-            gamePlay.addPlayterToRoom(selectedRoomThread.getP2());
-			gamePlay.setSpeed(newRoom.getSpeed());
-            gamePlay.setMap(selectedRoomThread.getRoom().getMap());
-            gamePlay.start(); // Active Thread
+			GamePlayThread selectedGamePlay = new GamePlayThread();
+            selectedGamePlay.addPlayterToRoom(selectedRoomThread.getP1());
+            selectedGamePlay.addPlayterToRoom(selectedRoomThread.getP2());
+			selectedGamePlay.setSpeed(newRoom.getSpeed());
+            selectedGamePlay.setMap(selectedRoomThread.getRoom().getMap());
+            selectedGamePlay.start(); // Active Thread
             
             selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.START_GAME);
             selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.START_GAME);
-            gamePlay.startGame();
-			
+            selectedGamePlay.startGame();
+
+			// Add room to list
+			listGamePlay.add(selectedGamePlay);
 			// remove room
 			listRoom.remove(getRoomIndexByName(selectedRoomThread.getRoom().getName()));
             listRoomThread.remove(getRoomThreadIndexByRoomName(selectedRoomThread.getRoom().getName()));
@@ -307,12 +415,11 @@ public class ClientThread extends Thread implements Serializable{
     private void joinRoom() {
         try {
             Room selectedRoom = (Room) socketIO.getInput().readObject();
-			
-            ClientState p2 = (ClientState) socketIO.getInput().readObject();
+
             for (Room room: listRoom){
                 if (selectedRoom.getName().trim().toLowerCase().equals(room.getName().trim().toLowerCase())){
                     // update room
-                    room.setP2(p2);
+                    room.setP2(this.getClientState());
                     room.setStatus(Consts.READY);
                     // Send updated Room to sender
 					socketIO.getOutput().reset();
@@ -341,6 +448,21 @@ public class ClientThread extends Thread implements Serializable{
         }
     }    
 
+	private GamePlayThread getGamePlayByPlayerName (String name) {
+        for (GamePlayThread gameplay : listGamePlay){
+            if (gameplay.getArr_player().get(1).getClientState().getName().equals(name)){
+                return gameplay;
+            }
+        }
+		
+		for (GamePlayThread gameplay : listGamePlay){
+            if (gameplay.getArr_player().get(0).getClientState().getName().equals(name)){
+                return gameplay;
+            }
+        }
+        return null;
+    }
+	
     private WaitingRoomThread getWaitingRoomThreadByRoomName (String roomName) {
         for (WaitingRoomThread tmp : listRoomThread){
             if (tmp.getRoom().getName().trim().equals(roomName)){

@@ -83,7 +83,6 @@ public class PrepareGame extends javax.swing.JFrame {
 	
 	public void handleP2OutRoom () {
 		try {
-			System.out.println("IN");
 			Room updatedRoom = (Room)socketIO.getInput().readObject();
 			room = updatedRoom;
 			initNewRoom();
@@ -97,7 +96,8 @@ public class PrepareGame extends javax.swing.JFrame {
 	public void roomHasBeenRemove () {
 		JOptionPane.showMessageDialog(null, "Room has been removed");
 		this.dispose();	
-		new LAN(socketIO, this.room.getP2()).setVisible(true);
+		boolean isRegisterName = true;
+		new LAN(socketIO, this.room.getP2(), isRegisterName).setVisible(true);
 	}
 	
 	public void manualBindEvents() {
@@ -637,7 +637,8 @@ public class PrepareGame extends javax.swing.JFrame {
 			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
 		}
 		this.dispose();		
-		new LAN(socketIO, this.room.getP1()).setVisible(true);
+		boolean isRegisterName = true;
+		new LAN(socketIO, this.room.getP1(), isRegisterName).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void cbP2BallColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP2BallColorActionPerformed

@@ -8,9 +8,6 @@ package client.view;
 import consts.Consts;
 import java.awt.Image;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,7 +16,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import map.Map;
 import model.ClientState;
 import model.Room;
 import model.SocketIO;
@@ -33,12 +29,14 @@ public class LAN extends javax.swing.JFrame {
     private ArrayList<Room> listRoomWaiting;
     private Room selectedRoom;
 	private SocketIO socketIO;
+	private boolean isRegisterName;
 	private DefaultListModel listMapStr;
 	
-	public LAN(SocketIO socketIO, ClientState player) {
+	public LAN(SocketIO socketIO, ClientState player, boolean isRegisterName) {
         this.player = player;
         this.socketIO = socketIO;
-        initComponents();
+        this.isRegisterName = isRegisterName;
+		initComponents();
         initMapData();
 	}
 
@@ -47,6 +45,9 @@ public class LAN extends javax.swing.JFrame {
 		getListRoom();
 		this.registerMapListEvent();
 		jlistRoomWaiting.setModel(listMapStr);
+		if (isRegisterName){
+			this.tfPlayerName.setText(player.getName());
+		}
     }
 	
 	public void getListRoom () {
@@ -56,7 +57,7 @@ public class LAN extends javax.swing.JFrame {
             for (Room room : listRoomWaiting){
 				String lastRoomName = room.getName() + " ("+ (room.getP2() != null ? 2 : 1)  +"/2)";
                 listMapStr.addElement(lastRoomName);
-            }  
+            }
         } catch (IOException ex) {
             Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -77,7 +78,7 @@ public class LAN extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        playerName = new javax.swing.JTextField();
+        tfPlayerName = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jlistRoomWaiting = new javax.swing.JList<>();
@@ -114,20 +115,20 @@ public class LAN extends javax.swing.JFrame {
         jLabel3.setForeground(new java.awt.Color(254, 254, 254));
         jLabel3.setText("Player Name");
 
-        playerName.addActionListener(new java.awt.event.ActionListener() {
+        tfPlayerName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                playerNameActionPerformed(evt);
+                tfPlayerNameActionPerformed(evt);
             }
         });
-        playerName.addKeyListener(new java.awt.event.KeyAdapter() {
+        tfPlayerName.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
-                playerNameKeyTyped(evt);
+                tfPlayerNameKeyTyped(evt);
             }
             public void keyPressed(java.awt.event.KeyEvent evt) {
-                playerNameKeyPressed(evt);
+                tfPlayerNameKeyPressed(evt);
             }
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                playerNameKeyReleased(evt);
+                tfPlayerNameKeyReleased(evt);
             }
         });
 
@@ -148,7 +149,7 @@ public class LAN extends javax.swing.JFrame {
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel4)
                                 .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(playerName)
+                            .addComponent(tfPlayerName)
                             .addComponent(jScrollPane1))
                         .addContainerGap())
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -165,7 +166,7 @@ public class LAN extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(playerName, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(tfPlayerName, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -384,7 +385,7 @@ public class LAN extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "No Room Selected!!!");
                 return;
             }
-            if (playerName.getText().isEmpty()) {
+            if (tfPlayerName.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "No Name Provived!!!");
                 return;
             }
@@ -394,11 +395,33 @@ public class LAN extends javax.swing.JFrame {
                 return;
 			}
             
-            // Action code
+			if (!isRegisterName){
+				// Set player name
+				socketIO.getOutput().writeObject(Consts.SET_PLAYER_NAME);
+				socketIO.getOutput().writeObject(tfPlayerName.getText());
+				boolean isValidName = (boolean) socketIO.getInput().readObject();
+				if (!isValidName){
+					JOptionPane.showMessageDialog(null, "Name is registered");
+					return;
+				}
+				isRegisterName = true;
+				this.player.setName(tfPlayerName.getText());
+			} else if (!tfPlayerName.getText().trim().toLowerCase().equals(player.getName().trim().toLowerCase())) {
+				// Update 
+				socketIO.getOutput().writeObject(Consts.UPDATE_PLAYER_NAME);
+				socketIO.getOutput().writeObject(tfPlayerName.getText());
+				boolean isValidName = (boolean) socketIO.getInput().readObject();
+				if (!isValidName){
+					JOptionPane.showMessageDialog(null, "Name is registered");
+					return;
+				}
+				this.player.setName(tfPlayerName.getName());
+			}
+			
+			// Join room
             socketIO.getOutput().writeObject(Consts.JOIN_ROOM);
-            // Data
             socketIO.getOutput().writeObject(selectedRoom);
-            socketIO.getOutput().writeObject(player);
+            
             // Receive new room state
             Room joinedRoom = (Room) socketIO.getInput().readObject();
 			int status = (Integer) socketIO.getInput().readObject();
@@ -426,16 +449,32 @@ public class LAN extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void exitBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitBtnActionPerformed
-		this.dispose();
-		new Game().setVisible(true);
+		try {
+			this.dispose();
+			this.socketIO.getSocket().close();
+			new Game().setVisible(true);
+		} catch (IOException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		}
     }//GEN-LAST:event_exitBtnActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         try {
-            if (playerName.getText().isEmpty()) {
+            if (tfPlayerName.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "No Name Provived!!!");
                 return;
             }
+			if (!isRegisterName || !tfPlayerName.getText().trim().toLowerCase().equals(player.getName())) {
+				socketIO.getOutput().writeObject(Consts.SET_PLAYER_NAME);
+				socketIO.getOutput().writeObject(tfPlayerName.getText());
+				boolean isValidName = (boolean) socketIO.getInput().readObject();
+				if (!isValidName){
+					JOptionPane.showMessageDialog(null, "Name is Registered");
+					return;
+				}
+				isRegisterName = true;
+				this.player.setName(tfPlayerName.getText());
+			}
             this.dispose();
             new CreateRoom(socketIO, player).setVisible(true);
         } catch (Exception ex) {
@@ -447,21 +486,21 @@ public class LAN extends javax.swing.JFrame {
 		JOptionPane.showMessageDialog(null, "Feature in progress");
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void playerNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playerNameActionPerformed
+    private void tfPlayerNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfPlayerNameActionPerformed
 		
-    }//GEN-LAST:event_playerNameActionPerformed
+    }//GEN-LAST:event_tfPlayerNameActionPerformed
 
-    private void playerNameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_playerNameKeyPressed
+    private void tfPlayerNameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfPlayerNameKeyPressed
         
-    }//GEN-LAST:event_playerNameKeyPressed
+    }//GEN-LAST:event_tfPlayerNameKeyPressed
 
-    private void playerNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_playerNameKeyTyped
+    private void tfPlayerNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfPlayerNameKeyTyped
 		
-    }//GEN-LAST:event_playerNameKeyTyped
+    }//GEN-LAST:event_tfPlayerNameKeyTyped
 
-    private void playerNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_playerNameKeyReleased
-        player.setName(playerName.getText());
-    }//GEN-LAST:event_playerNameKeyReleased
+    private void tfPlayerNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfPlayerNameKeyReleased
+        player.setName(tfPlayerName.getText());
+    }//GEN-LAST:event_tfPlayerNameKeyReleased
 
     private void tfRoomSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfRoomSpeedActionPerformed
         // TODO add your handling code here:
@@ -522,7 +561,7 @@ public class LAN extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JList<String> jlistRoomWaiting;
-    private javax.swing.JTextField playerName;
+    private javax.swing.JTextField tfPlayerName;
     private javax.swing.JTextField tfRoomCreator;
     private javax.swing.JTextArea tfRoomDes;
     private javax.swing.JTextField tfRoomName;

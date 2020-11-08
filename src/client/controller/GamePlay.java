@@ -41,7 +41,8 @@ public class GamePlay extends JPanel{
 	private boolean isHost;
 	private boolean isPlay;
 	
-	private boolean isInitNewGame;
+	private boolean isPause;
+	private boolean isShowCounter;
 	private Integer counter = 0;
 	
 	private boolean isGameLose, isGameWin;
@@ -69,8 +70,8 @@ public class GamePlay extends JPanel{
 	}
 	
 	public void initNewGame (){
-		isPlay = isGameLose = isGameWin = false;
-		isInitNewGame = true;
+		isPlay = isGameLose = isGameWin = isPause = false;
+		isShowCounter = true;
 		
 		// Init Jpanel
 		setSize(Consts.SCREEN_WIDTH, Consts.GAMPLAY_HEIGHT);
@@ -104,7 +105,8 @@ public class GamePlay extends JPanel{
 			g.drawString("GAME WIN",Consts.GAMPLAY_WIDTH / 2 - 50*3, Consts.GAMPLAY_HEIGHT / 2);
 		}
 		
-		if (isInitNewGame){
+		// Counter on first Init
+		if (isShowCounter){
 			g.setColor(Color.RED);
 			g.setFont(new Font("serif", Font.PLAIN, 200));
 			g.drawString(counter.toString(), Consts.GAMPLAY_WIDTH / 2 - 100, Consts.GAMPLAY_HEIGHT / 2);
@@ -187,14 +189,13 @@ public class GamePlay extends JPanel{
 		}
 		// Pause BTN 
 		g.setColor(Color.RED);
-		g.drawRect(Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT - 100, 150, 50);
-		g.drawString(isInitNewGame ? "Play" :
-				isPlay ? "Pause" : "UnPause", Consts.GAMPLAY_WIDTH + 20 + (isInitNewGame ? 45 : isPlay ? 45 : 30), Consts.GAMPLAY_HEIGHT - 100 + 32);
+		g.drawRect(Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT - 70, 150, 50);
+		g.drawString(isPause ? "Pause" : "Play", Consts.GAMPLAY_WIDTH + 20 + 45, Consts.GAMPLAY_HEIGHT - 70 + 32);
 
-		// Pause BTN 
+		// Exit BTN 
 		g.setColor(Color.RED);
-		g.drawRect(Consts.GAMPLAY_WIDTH + 20 + 150  + 50, Consts.GAMPLAY_HEIGHT - 100, 150, 50);
-		g.drawString("Exit", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 100 + 32);
+		g.drawRect(Consts.GAMPLAY_WIDTH + 20 + 150  + 50, Consts.GAMPLAY_HEIGHT - 70, 150, 50);
+		g.drawString("Exit", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 70 + 32);
 	}
 	
 	public void drawCircleWithX (Graphics g, int startX, int startY, int padding) {
@@ -204,6 +205,7 @@ public class GamePlay extends JPanel{
 		g.drawLine(startX, startY  + padding / 2, startX + padding, startY + padding / 2 );
 	}
 	
+	// Listen on server send data
 	public void play () {
 		while (true){
 			try {
@@ -224,6 +226,12 @@ public class GamePlay extends JPanel{
 					case Consts.GAME_WIN:
 						handleGameWin();
 						break;
+					case Consts.GAME_PAUSE:
+						handleGamePause();
+						break;
+					case Consts.GAME_UNPAUSE:
+						handleGameUnPause();
+						break;
 				}
 			} catch (IOException ex) {
                 Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
@@ -231,6 +239,16 @@ public class GamePlay extends JPanel{
                 Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
             }
 		}
+	}
+	
+	public void handleGamePause () {
+		isPause = true;
+		customRepaint();
+	}
+	
+	public void handleGameUnPause () {
+		isPause = false;
+		customRepaint();
 	}
 	
 	public void handleGameWin () {
@@ -247,7 +265,7 @@ public class GamePlay extends JPanel{
 		try {
 			counter = (Integer) socketIO.getInput().readObject();
 			customRepaint();
-			if (counter == 0) isInitNewGame = false;
+			if (counter == 0) isShowCounter = false;
 		} catch (IOException ex) {
 			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
 		} catch (ClassNotFoundException ex) {
@@ -275,7 +293,7 @@ public class GamePlay extends JPanel{
 			p2 = (ClientState)socketIO.getInput().readObject();
 			this.mapState = (MapState)socketIO.getInput().readObject();
 			isPlay = true;
-//			isInitNewGame = false;
+//			isShowCounter = false;
 			customRepaint();
 		} catch (IOException ex) {
 			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
@@ -311,16 +329,29 @@ public class GamePlay extends JPanel{
 		return new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent me) {
-				System.out.println(me);
-				if (me.getX() >= width + 20 && me.getX() <= width + 20 + 150 &&
-				    me.getY() >= height - 100 && me.getY() <= height - 50){
-					isPlay = !isPlay;
-					isInitNewGame = false;
-				}else if (me.getX() >= width + 220 && me.getX() <= width + 220 + 150 &&
-				    me.getY() >= height - 100 && me.getY() <= height - 50) {
-					JFrame parent = (JFrame)self.getTopLevelAncestor();
-					parent.dispose();
-					System.exit(0);
+				try {				
+					if (!isShowCounter){
+						// Pause BTN 
+						if (me.getX() >= Consts.GAMPLAY_WIDTH + 20 && me.getX() <= Consts.GAMPLAY_WIDTH + 20 + 150 &&
+							me.getY() >= Consts.GAMPLAY_HEIGHT - 70 && me.getY() <= Consts.GAMPLAY_HEIGHT - 70 + 50){
+							if (!isPause) {
+								isPause = true;
+								socketIO.getOutput().writeObject(Consts.GAME_PAUSE);
+							} else {
+								isShowCounter = true;
+								socketIO.getOutput().writeObject(Consts.GAME_UNPAUSE);
+							}
+						// Exit BTN
+						}else if (
+							me.getX() >= Consts.GAMPLAY_WIDTH + 220 && me.getX() <= Consts.GAMPLAY_WIDTH + 220 + 150 &&
+							me.getY() >= Consts.GAMPLAY_HEIGHT - 70 && me.getY() <= Consts.GAMPLAY_HEIGHT - 70 + 50) {
+							JFrame parent = (JFrame)self.getTopLevelAncestor();
+							parent.dispose();
+							System.exit(0);
+						}
+					}
+				} catch (IOException ex) {
+					Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
 				}
 			}
 		};

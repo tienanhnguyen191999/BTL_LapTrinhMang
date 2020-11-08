@@ -171,8 +171,7 @@ public class GamePlayThread extends Thread{
 			}
 		};
 	}
-	
-		
+
 	private void handleCollision() {
 		boolean isP1 = true;
 		for (ClientThread player : arr_player){
@@ -221,15 +220,7 @@ public class GamePlayThread extends Thread{
 			isP1 = !isP1;
 		}
 	}
-	
-	// Ball be "touch" to the ...
-	// [
-	//	-1 => no collision, 
-	//	1 => top, 
-	//	2 => right, 
-	//	3 => bottom,
-	//	4 => left 
-	// ]	
+		
 	private int checkIntersectWithEdges (Ball ball, Bar bar, boolean isBarOnBottom) {
 		if (isBarOnBottom){
 			// bottom Bar 
@@ -279,11 +270,7 @@ public class GamePlayThread extends Thread{
 	} 
 	
 	public void addPlayterToRoom (ClientThread player){
-		if (arr_player.size() < Consts.MAX_PLAYER){
-			arr_player.add(player);
-		}else {
-			System.out.println("!!! Room reach maximum player !!!");
-		}
+		arr_player.add(player);
 	}
 	
 	@Override
@@ -311,6 +298,14 @@ public class GamePlayThread extends Thread{
 		
 		isPlay = true;
 	}
+	
+	public void pauseGame () {
+		timer.stop();
+	}
+	
+	public void playGame () {
+		timer.start();
+	}
 
     public void setMap(Map map) {
         this.map = map;
@@ -322,5 +317,9 @@ public class GamePlayThread extends Thread{
 
 	public void setSpeed(int speed) {
 		this.speed = speed;
+	}
+
+	public ArrayList<ClientThread> getArr_player() {
+		return arr_player;
 	}
 }
