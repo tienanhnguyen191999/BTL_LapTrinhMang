@@ -300,11 +300,11 @@ public class GamePlayThread extends Thread{
 	}
 	
 	public void pauseGame () {
-		timer.stop();
+		isPlay = false;
 	}
 	
 	public void playGame () {
-		timer.start();
+		isPlay = true;
 	}
 
     public void setMap(Map map) {

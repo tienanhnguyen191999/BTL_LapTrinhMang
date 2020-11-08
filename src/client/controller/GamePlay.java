@@ -263,9 +263,10 @@ public class GamePlay extends JPanel{
 	
 	public void handleCounterBeforeStart(){
 		try {
+            isShowCounter = true;
 			counter = (Integer) socketIO.getInput().readObject();
-			customRepaint();
 			if (counter == 0) isShowCounter = false;
+            customRepaint();
 		} catch (IOException ex) {
 			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
 		} catch (ClassNotFoundException ex) {
@@ -338,7 +339,6 @@ public class GamePlay extends JPanel{
 								isPause = true;
 								socketIO.getOutput().writeObject(Consts.GAME_PAUSE);
 							} else {
-								isShowCounter = true;
 								socketIO.getOutput().writeObject(Consts.GAME_UNPAUSE);
 							}
 						// Exit BTN

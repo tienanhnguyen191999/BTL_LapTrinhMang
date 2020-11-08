@@ -177,14 +177,16 @@ public class ClientThread extends Thread implements Serializable{
 	public void handleGameUnPause () {		
 		try {
 			if (selectedGamePlay == null){
-				System.out.println("this.state.getName(): "+ this.state.getName());
 				selectedGamePlay = this.getGamePlayByPlayerName(this.state.getName());
 			}
 			
-			for (int i = 3 ; i >= 0 ;i--){
+			for (int i = 3 ; i >= 0 ; i--){
+				selectedRoomThread.getP1().getSocketIO().getOutput().reset();
 				selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.COUNTER_BEFORE_START);
-				selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.COUNTER_BEFORE_START);
-				selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(i);			
+                selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(i);
+                
+                selectedRoomThread.getP2().getSocketIO().getOutput().reset();
+                selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.COUNTER_BEFORE_START);			
 				selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(i);
 				TimeUnit.SECONDS.sleep(1);
 			}
