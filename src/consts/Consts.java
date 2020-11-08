@@ -20,8 +20,15 @@ public class Consts {
 	public static final int GAMPLAY_WIDTH = 1200;
 	public static final int GAMPLAY_HEIGHT = 800;
 	
-	public static final int BRICK_WIDTH = 80;
-	public static final int BRICK_HEIGHT = 30;
+	// Default scale = 1
+	public static final int BRICK_WIDTH = 40;
+	public static final int BRICK_HEIGHT = 15;
+	public static final int BAR_WIDTH = 100;
+	public static final int BAR_HEIGHT = 10;
+	public static final int BALL_RADIUS = 15;
+	
+	// Default Speed
+	public static final int BAR_SPEED = 20;
 	
 	public static final int TOP = 1;
 	public static final int RIGHT = 2;
@@ -41,8 +48,9 @@ public class Consts {
 	public static final int UPDATE_P1_BALL_COLOR = 8;
 	public static final int UPDATE_P2_BALL_COLOR = 9;
 	public static final int REMOVE_ROOM = 10;
-	public static final int ROOM_NOT_EXISTS = 11;
-	public static final int ROOM_EXISTS = 12;
+	public static final int OUT_ROOM = 11;
+	public static final int ROOM_NOT_EXISTS = 12;
+	public static final int ROOM_EXISTS = 13;
 	
 	// For Gameplay Thread
 	public static final int COUNTER_BEFORE_START = 8; 
@@ -50,6 +58,7 @@ public class Consts {
 	public static final int OTHER_PLAYER_LOST_CONNECTION = 10;
 	public static final int GAME_LOSE = 11;
 	public static final int GAME_WIN = 12;
+	
 	
     // Room Status
     public static final int WAITING = 1;

@@ -65,7 +65,10 @@ public class PrepareGame extends javax.swing.JFrame {
 									updateP2BallColor();
 									break;
 								case Consts.REMOVE_ROOM:
-									removeHasBeenRemove();
+									roomHasBeenRemove();
+									break;
+								case Consts.OUT_ROOM:
+									handleP2OutRoom();
 									break;
 							}
                         }
@@ -78,7 +81,20 @@ public class PrepareGame extends javax.swing.JFrame {
         }).start();
 	}
 	
-	public void removeHasBeenRemove () {
+	public void handleP2OutRoom () {
+		try {
+			System.out.println("IN");
+			Room updatedRoom = (Room)socketIO.getInput().readObject();
+			room = updatedRoom;
+			initNewRoom();
+		} catch (IOException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+	
+	public void roomHasBeenRemove () {
 		JOptionPane.showMessageDialog(null, "Room has been removed");
 		this.dispose();	
 		new LAN(socketIO, this.room.getP2()).setVisible(true);
@@ -191,6 +207,9 @@ public class PrepareGame extends javax.swing.JFrame {
 		if (room.getP2() != null){
 			tfP2Name.setText(room.getP2().getName());
 			watingGif.setVisible(false);
+		} else {
+			tfP2Name.setText("");
+			watingGif.setVisible(true);
 		}
 		
 		// Auto Scroll TextArea 
@@ -607,20 +626,22 @@ public class PrepareGame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnStartActionPerformed
 	
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+		try {
 		if (isHost){
-			try {
-				// Remove Room
-				socketIO.getOutput().writeObject(Consts.REMOVE_ROOM);
-			} catch (IOException ex) {
-				Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
-			}
+			// Remove Room
+			socketIO.getOutput().writeObject(Consts.REMOVE_ROOM);
+		} else {
+			socketIO.getOutput().writeObject(Consts.OUT_ROOM);
+		}
+		} catch (IOException ex) {
+			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
 		}
 		this.dispose();		
 		new LAN(socketIO, this.room.getP1()).setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void cbP2BallColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP2BallColorActionPerformed
-
+		
     }//GEN-LAST:event_cbP2BallColorActionPerformed
 
     private void btnSendMessageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendMessageActionPerformed

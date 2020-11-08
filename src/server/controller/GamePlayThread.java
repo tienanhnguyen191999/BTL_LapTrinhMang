@@ -26,7 +26,7 @@ import map.*;
  * 2 socket connection required
  */
 public class GamePlayThread extends Thread{
-	private int padding = 50;
+	private int padding = 20;
 	private int delayTime, speed;
 	private boolean isPlay, isInitNewGame;
 	private Map map;
@@ -53,11 +53,33 @@ public class GamePlayThread extends Thread{
 			if (isPlayer_1){
 				// Init ball and bar
 				isPlayer_1 = false;
-				client.getClientState().setBar(new Bar(200, 20, 20,  Consts.GAMPLAY_WIDTH/2 - 200/2, Consts.GAMPLAY_HEIGHT - 20 - padding));
-				client.getClientState().setBall(new Ball(30, -1, -1, Consts.GAMPLAY_WIDTH/2 - 30/2, Consts.GAMPLAY_HEIGHT - padding - client.getClientState().getBar().getHeight() - 30));
+				client.getClientState().setBar(new Bar(
+					Consts.BAR_WIDTH, 
+					Consts.BAR_HEIGHT, 
+					Consts.BAR_SPEED,  
+					Consts.GAMPLAY_WIDTH/2 - Consts.BAR_WIDTH / 2, 
+					Consts.GAMPLAY_HEIGHT - Consts.BAR_HEIGHT - padding)
+				);
+				
+				client.getClientState().setBall(new Ball(
+					Consts.BALL_RADIUS, -1, -1, 
+					Consts.GAMPLAY_WIDTH/2 - Consts.BALL_RADIUS / 2, 
+					Consts.GAMPLAY_HEIGHT - padding - Consts.BAR_HEIGHT - Consts.BALL_RADIUS)
+				);
 			}else {
-				client.getClientState().setBar(new Bar(200, 20, 20,  Consts.GAMPLAY_WIDTH/2 - 200/2, padding - 20 ));
-				client.getClientState().setBall(new Ball(30, 1, 1, Consts.GAMPLAY_WIDTH/2 - 30/2, padding));
+				client.getClientState().setBar(new Bar(
+					Consts.BAR_WIDTH, 
+					Consts.BAR_HEIGHT, 
+					Consts.BAR_SPEED, 
+					Consts.GAMPLAY_WIDTH/2 - Consts.BAR_WIDTH / 2,
+					padding)
+				);
+				
+				client.getClientState().setBall(new Ball(
+					Consts.BALL_RADIUS, 1, 1,
+					Consts.GAMPLAY_WIDTH/2 - Consts.BALL_RADIUS / 2, 
+					padding + Consts.BAR_HEIGHT)
+				);
 			}
 			client.getClientState().getBall().setColor(ballColor);
 		}

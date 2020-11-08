@@ -16,7 +16,7 @@ public class MapState implements Serializable{
 
 	public MapState() {
 	}
-
+	
 	public Brick[] getBricks() {
 		return bricks;
 	}

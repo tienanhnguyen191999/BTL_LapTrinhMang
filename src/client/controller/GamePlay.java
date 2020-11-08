@@ -7,6 +7,7 @@ package client.controller;
 
 import consts.Consts;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Toolkit;
@@ -73,6 +74,7 @@ public class GamePlay extends JPanel{
 		
 		// Init Jpanel
 		setSize(Consts.SCREEN_WIDTH, Consts.GAMPLAY_HEIGHT);
+		setPreferredSize(new Dimension(Consts.SCREEN_WIDTH, Consts.GAMPLAY_HEIGHT));
 		setBackground(Color.BLACK);
 		setFocusable(true);
 		setVisible(true);
@@ -116,8 +118,8 @@ public class GamePlay extends JPanel{
 		// Bar p1
 		g.setColor(Color.GREEN);
 		g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());
-
-
+		
+		
 		// Ball p2
 		g.setColor(p2.getBall().getColor());
 		g.fillOval(p2.getBall().getX(), p2.getBall().getY(), p2.getBall().getRadius(), p2.getBall().getRadius());
