@@ -30,7 +30,6 @@ public class Server {
 	public Server () {
 		try {
 			server = new ServerSocket(Consts.PORT);
-            
             listRoom = new ArrayList<Room>();
             listPlayer = new ArrayList<String>();
             listWaitingRoom = new ArrayList<WaitingRoomThread>();

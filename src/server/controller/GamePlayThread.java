@@ -322,4 +322,8 @@ public class GamePlayThread extends Thread{
 	public ArrayList<ClientThread> getArr_player() {
 		return arr_player;
 	}
+
+    public Map getMap() {
+        return map;
+    }
 }

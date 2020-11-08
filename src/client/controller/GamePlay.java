@@ -16,6 +16,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -23,6 +25,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -187,10 +190,16 @@ public class GamePlay extends JPanel{
 			g.setColor(Color.YELLOW);
 			g.drawString("Disconnected", Consts.GAMPLAY_WIDTH + 110, Consts.GAMPLAY_HEIGHT / 2 + 110);
 		}
+
+        // Save BTN
+        g.setColor(Color.RED);
+		g.drawRect(Consts.GAMPLAY_WIDTH + 20 + 150  + 50, Consts.GAMPLAY_HEIGHT - 70 - 50 - 20, 150, 50);
+		g.drawString("Save", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 70 - 50 - 20 + 32);
+        
 		// Pause BTN 
 		g.setColor(Color.RED);
 		g.drawRect(Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT - 70, 150, 50);
-		g.drawString(isPause ? "Pause" : "Play", Consts.GAMPLAY_WIDTH + 20 + 45, Consts.GAMPLAY_HEIGHT - 70 + 32);
+		g.drawString(isPause ? "Play" : "Pause", Consts.GAMPLAY_WIDTH + 20 + 45, Consts.GAMPLAY_HEIGHT - 70 + 32);
 
 		// Exit BTN 
 		g.setColor(Color.RED);
@@ -328,12 +337,34 @@ public class GamePlay extends JPanel{
 	private MouseListener handleClickEvent() {
 		JPanel self = this;
 		return new MouseAdapter() {
-			@Override
+            @Override
 			public void mouseClicked(MouseEvent me) {
 				try {				
 					if (!isShowCounter){
+                        // Save BTN
+                        if (me.getX() >= Consts.GAMPLAY_WIDTH + 220 && me.getX() <= Consts.GAMPLAY_WIDTH + 220 + 150 &&
+							me.getY() >= Consts.GAMPLAY_HEIGHT - 140 && me.getY() <= Consts.GAMPLAY_HEIGHT - 140 + 50){
+                            
+                            // Create File Name 
+                            int index = 0;
+                            String fileName = "src/data/save/save-" + index + ".txt";
+                            File file = new File(fileName);
+                            while(file.exists()) {
+                                fileName = "src/data/save/save-" + ++index +".txt";
+                                file = new File(fileName);
+                            }
+
+                            // Capture
+                            BufferedImage img = new BufferedImage(Consts.GAMPLAY_WIDTH, Consts.GAMPLAY_HEIGHT, BufferedImage.TYPE_INT_RGB);
+                            self.paint(img.getGraphics());
+                            File outputfile = new File("src/data/save/image/preview-"+index+".png");
+                            ImageIO.write(img, "png", outputfile);
+
+                            socketIO.getOutput().writeObject(Consts.SAVE_GAME);
+                            socketIO.getOutput().writeObject(fileName);                            
+                        }
 						// Pause BTN 
-						if (me.getX() >= Consts.GAMPLAY_WIDTH + 20 && me.getX() <= Consts.GAMPLAY_WIDTH + 20 + 150 &&
+                        else if (me.getX() >= Consts.GAMPLAY_WIDTH + 20 && me.getX() <= Consts.GAMPLAY_WIDTH + 20 + 150 &&
 							me.getY() >= Consts.GAMPLAY_HEIGHT - 70 && me.getY() <= Consts.GAMPLAY_HEIGHT - 70 + 50){
 							if (!isPause) {
 								isPause = true;

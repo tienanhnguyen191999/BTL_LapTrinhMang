@@ -7,7 +7,11 @@ package client.view;
 
 import consts.Consts;
 import java.awt.Image;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +20,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import map.Map;
 import model.ClientState;
 import model.Room;
 import model.SocketIO;
@@ -74,6 +79,7 @@ public class LAN extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jFileChooseSaveFile = new javax.swing.JFileChooser();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -100,6 +106,13 @@ public class LAN extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         exitBtn = new javax.swing.JButton();
+
+        jFileChooseSaveFile.setCurrentDirectory(new java.io.File("/home/tienanh/BTL_LapTrinhMang"));
+        jFileChooseSaveFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jFileChooseSaveFileActionPerformed(evt);
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -483,9 +496,59 @@ public class LAN extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-		JOptionPane.showMessageDialog(null, "Feature in progress");
+        ObjectInputStream input = null;
+        try {
+            jFileChooseSaveFile.showOpenDialog(null);
+            File saveFile = jFileChooseSaveFile.getSelectedFile();
+            input = new ObjectInputStream(new FileInputStream(saveFile));
+            // Read Object
+            ClientState p1 = (ClientState) input.readObject();
+            ClientState p2 = (ClientState) input.readObject();
+            Map map = (Map) input.readObject();
+            int index = 0;
+            String roomName = "Save_room" + index;
+            for (Room tmp : listRoomWaiting ) {
+                if (tmp.getName().trim().toLowerCase().equals(roomName)){
+                    roomName = "Save_room" + ++index;
+                }
+            }
+            String imagePreview = getPreviewImagePathFromSaveFile(saveFile.getAbsolutePath());
+            System.out.println(imagePreview);
+            
+            
+            // Send Object
+            JOptionPane.showMessageDialog(null, "Loaded save file success");
+            socketIO.getOutput().writeObject(Consts.LOAD_GAME);
+            Room saveRoom = new Room();
+            saveRoom.setP1(p1);
+            saveRoom.setP1(p2);
+            saveRoom.setMap(map);
+            saveRoom.getMap().getMapInfo().setImagePreviewPath(imagePreview);
+            saveRoom.setName(roomName);
+            // saveRoom.setSpeed(); => Missing data
+            socketIO.getOutput().writeObject(saveRoom);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            JOptionPane.showMessageDialog(null, "Please choose valid save file!");
+        } finally {
+            try {
+                input.close();
+            } catch (IOException ex) {
+                Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    private String getPreviewImagePathFromSaveFile (String fileName) {
+        System.out.println(fileName);
+        int index = Integer.parseInt(fileName.split("-")[1].split("\\.")[0]);
+        return "src/data/save/image/preview-"+ index +".png";
+    }
+    
     private void tfPlayerNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfPlayerNameActionPerformed
 		
     }//GEN-LAST:event_tfPlayerNameActionPerformed
@@ -505,6 +568,10 @@ public class LAN extends javax.swing.JFrame {
     private void tfRoomSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfRoomSpeedActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_tfRoomSpeedActionPerformed
+
+    private void jFileChooseSaveFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFileChooseSaveFileActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jFileChooseSaveFileActionPerformed
 
 	private void registerMapListEvent() {
 		jlistRoomWaiting.addListSelectionListener(new ListSelectionListener() {
@@ -545,6 +612,7 @@ public class LAN extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JFileChooser jFileChooseSaveFile;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;

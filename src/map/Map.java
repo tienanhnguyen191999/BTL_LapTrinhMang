@@ -17,6 +17,7 @@ import model.MapInfo;
  * @author tienanh
  */
 public abstract class Map implements Serializable{
+    static final long serialVersionUID = 41L;
 	protected MapState mapState;
 	protected MapInfo mapInfo;
 
