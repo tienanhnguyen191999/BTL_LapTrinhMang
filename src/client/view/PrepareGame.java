@@ -204,7 +204,7 @@ public class PrepareGame extends javax.swing.JFrame {
 		ImageIcon result = new ImageIcon(resize);
 		imagePreview.setIcon(result);
 		tfP1Name.setText(room.getP1().getName());
-		if (room.getP2() != null){
+		if (room.getP2() != null && room.getP2().getName() != null){
 			tfP2Name.setText(room.getP2().getName());
 			watingGif.setVisible(false);
 		} else {

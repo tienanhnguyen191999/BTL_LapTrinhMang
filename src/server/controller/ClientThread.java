@@ -164,9 +164,12 @@ public class ClientThread extends Thread implements Serializable{
             
             // Save to file
             ObjectOutputStream outFile = new ObjectOutputStream(new FileOutputStream(new File(fileName)));
-            outFile.writeObject(selectedGamePlay.getArr_player().get(0).getClientState());
-            outFile.writeObject(selectedGamePlay.getArr_player().get(1).getClientState());
-            outFile.writeObject(selectedGamePlay.getMap());
+			Room saveRoom = new Room();
+			saveRoom.setMap(selectedGamePlay.getMap());
+			saveRoom.setP1(selectedGamePlay.getArr_player().get(0).getClientState());
+			saveRoom.setP2(selectedGamePlay.getArr_player().get(1).getClientState());
+			saveRoom.setSpeed(selectedGamePlay.getSpeed());
+            outFile.writeObject(saveRoom);
             outFile.close();
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -466,19 +469,24 @@ public class ClientThread extends Thread implements Serializable{
         try {
             Room selectedRoom = (Room) socketIO.getInput().readObject();
             
-            // Save Room
+            // Join to save Room
             if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
+				// Update player name
                 selectedRoomThread = this.getWaitingRoomThreadByRoomName(selectedRoom.getName());
                 selectedRoomThread.setP2(this);
-                selectedRoomThread.getP2().setClientState(selectedRoomThread.getRoom().getP2());
+				selectedRoomThread.getP2().getClientState().setName(this.getClientState().getName());
+				
+				// Send updated Room to sender
+				socketIO.getOutput().reset();
+                socketIO.getOutput().writeObject(selectedRoomThread.getRoom());
+				
                 
                 selectedRoomThread.getP2().socketIO.getOutput().writeObject(Consts.ROOM_EXISTS);
-                // Send update action
                 selectedRoomThread.getP1().socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
                 return;
             }
             
-            // Normal Room
+            // Join to normal Room
             for (Room room: listRoom){
                 if (selectedRoom.getName().trim().toLowerCase().equals(room.getName().trim().toLowerCase())){
                     // update room
