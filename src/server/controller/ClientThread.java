@@ -369,8 +369,13 @@ public class ClientThread extends Thread implements Serializable{
             selectedGamePlay.addPlayterToRoom(selectedRoomThread.getP2());
 			selectedGamePlay.setSpeed(newRoom.getSpeed());
             selectedGamePlay.setMap(selectedRoomThread.getRoom().getMap());
+			// Load Save Game
 			if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
 				selectedGamePlay.setIsSaveGameLoad(true);
+			}
+			// One Ball mode
+			if (selectedRoom.getGameMode() == Consts.ONE_BALL){
+				selectedGamePlay.setGameMode(Consts.ONE_BALL);
 			}
 			selectedGamePlay.start(); // Active Thread
             selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.START_GAME);

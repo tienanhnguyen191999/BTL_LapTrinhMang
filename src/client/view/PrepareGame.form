@@ -287,7 +287,7 @@
                           </Group>
                           <EmptySpace min="-2" pref="22" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="tfMapSize" alignment="0" max="32767" attributes="0"/>
+                              <Component id="tfGameMode" alignment="0" max="32767" attributes="0"/>
                               <Component id="tfMapName" alignment="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -328,7 +328,7 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="tfMapSize" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="tfGameMode" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -379,7 +379,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Map Size"/>
+            <Property name="text" type="java.lang.String" value="GameMode"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel8">
@@ -393,7 +393,7 @@
             <Property name="opaque" type="boolean" value="false"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JTextField" name="tfMapSize">
+        <Component class="javax.swing.JTextField" name="tfGameMode">
           <Properties>
             <Property name="editable" type="boolean" value="false"/>
           </Properties>

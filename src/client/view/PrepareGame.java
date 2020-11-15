@@ -199,7 +199,7 @@ public class PrepareGame extends javax.swing.JFrame {
     private void initNewRoom() {
 		tfDes.setText(room.getMap().getMapInfo().getDes()); // Listen on P2 Change
 		tfGameSpeed.setText(new Integer(room.getSpeed()).toString());
-		tfMapSize.setText(room.getMap().getMapInfo().getType());
+		tfGameMode.setText(room.getGameMode() == Consts.TWO_BALL ? "2 Ball" : "1 Ball");
 		tfMapName.setText(room.getName());
 		ImageIcon icon = new ImageIcon(getClass().getResource(room.getMap().getMapInfo().getImagePreviewPath()));
 		Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
@@ -251,7 +251,7 @@ public class PrepareGame extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         tfMapName = new javax.swing.JTextField();
-        tfMapSize = new javax.swing.JTextField();
+        tfGameMode = new javax.swing.JTextField();
         tfGameSpeed = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -407,14 +407,14 @@ public class PrepareGame extends javax.swing.JFrame {
 
         jLabel6.setText("Map Name:");
 
-        jLabel7.setText("Map Size");
+        jLabel7.setText("GameMode");
 
         jLabel8.setText("GameSpeed:");
 
         tfMapName.setEditable(false);
         tfMapName.setOpaque(false);
 
-        tfMapSize.setEditable(false);
+        tfGameMode.setEditable(false);
 
         tfGameSpeed.setEditable(false);
 
@@ -445,7 +445,7 @@ public class PrepareGame extends javax.swing.JFrame {
                             .addComponent(jLabel6))
                         .addGap(22, 22, 22)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(tfMapSize)
+                            .addComponent(tfGameMode)
                             .addComponent(tfMapName)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel8)
@@ -476,7 +476,7 @@ public class PrepareGame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(tfMapSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tfGameMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(11, 11, 11)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
@@ -709,9 +709,9 @@ public class PrepareGame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JTextArea tfChatBox;
     private javax.swing.JTextArea tfDes;
+    private javax.swing.JTextField tfGameMode;
     private javax.swing.JTextField tfGameSpeed;
     private javax.swing.JTextField tfMapName;
-    private javax.swing.JTextField tfMapSize;
     private javax.swing.JTextField tfMessage;
     private javax.swing.JTextPane tfP1Name;
     private javax.swing.JTextPane tfP2Name;

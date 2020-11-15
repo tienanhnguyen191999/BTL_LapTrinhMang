@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import model.Brick;
 import model.ClientState;
@@ -43,6 +44,7 @@ public class GamePlay extends JPanel{
     private int width, height, padding = 50;
 	private boolean isHost;
 	private boolean isPlay;
+	private int gameMode;
 	
 	private boolean isPause;
 	private boolean isShowCounter;
@@ -118,18 +120,24 @@ public class GamePlay extends JPanel{
 	
 	public void drawBasicState (Graphics g) {
 		// Ball p1
-		g.setColor(p1.getBall().getColor());
-		g.fillOval(p1.getBall().getX(), p1.getBall().getY(), p1.getBall().getRadius(), p1.getBall().getRadius());
+		if (p1.getBall() != null){
+			g.setColor(p1.getBall().getColor());
+			g.fillOval(p1.getBall().getX(), p1.getBall().getY(), p1.getBall().getRadius(), p1.getBall().getRadius());
+		}
+		
 		// Bar p1
-		g.setColor(Color.GREEN);
+		if (gameMode == Consts.ONE_BALL) g.setColor(Color.BLUE);
+		else g.setColor(Color.GREEN);
 		g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());
 		
 		
 		// Ball p2
-		g.setColor(p2.getBall().getColor());
-		g.fillOval(p2.getBall().getX(), p2.getBall().getY(), p2.getBall().getRadius(), p2.getBall().getRadius());
-
-		// Bar p2
+		if (p2.getBall() != null){
+			g.setColor(p2.getBall().getColor());
+			g.fillOval(p2.getBall().getX(), p2.getBall().getY(), p2.getBall().getRadius(), p2.getBall().getRadius());
+		}
+	
+		// Bar p2	
 		g.setColor(Color.GREEN);
 		g.fillRect(p2.getBar().getX(), p2.getBar().getY(), p2.getBar().getWidth(), p2.getBar().getHeight());
 
@@ -192,9 +200,12 @@ public class GamePlay extends JPanel{
 		}
 
         // Save BTN
-        g.setColor(Color.RED);
-		g.drawRect(Consts.GAMPLAY_WIDTH + 20 + 150  + 50, Consts.GAMPLAY_HEIGHT - 70 - 50 - 20, 150, 50);
-		g.drawString("Save", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 70 - 50 - 20 + 32);
+		if (gameMode != Consts.ONE_BALL) {
+			g.setColor(Color.RED);
+			g.drawRect(Consts.GAMPLAY_WIDTH + 20 + 150  + 50, Consts.GAMPLAY_HEIGHT - 70 - 50 - 20, 150, 50);
+			g.drawString("Save", Consts.GAMPLAY_WIDTH + 20 + 150  + 50 + 50, Consts.GAMPLAY_HEIGHT - 70 - 50 - 20 + 32);
+		}
+        
         
 		// Pause BTN 
 		g.setColor(Color.RED);
@@ -241,6 +252,9 @@ public class GamePlay extends JPanel{
 					case Consts.GAME_UNPAUSE:
 						handleGameUnPause();
 						break;
+					case Consts.ONE_BALL:
+						handleModeOneBall();
+						break;
 				}
 			} catch (IOException ex) {
                 Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
@@ -248,6 +262,11 @@ public class GamePlay extends JPanel{
                 Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
             }
 		}
+	}
+	
+	public void handleModeOneBall () {
+		gameMode = Consts.ONE_BALL;
+		customRepaint();
 	}
 	
 	public void handleGamePause () {
@@ -343,8 +362,7 @@ public class GamePlay extends JPanel{
 					if (!isShowCounter){
                         // Save BTN
                         if (me.getX() >= Consts.GAMPLAY_WIDTH + 220 && me.getX() <= Consts.GAMPLAY_WIDTH + 220 + 150 &&
-							me.getY() >= Consts.GAMPLAY_HEIGHT - 140 && me.getY() <= Consts.GAMPLAY_HEIGHT - 140 + 50){
-                            
+							me.getY() >= Consts.GAMPLAY_HEIGHT - 140 && me.getY() <= Consts.GAMPLAY_HEIGHT - 140 + 50 && gameMode != Consts.ONE_BALL){
                             // Create File Name 
                             int index = 0;
                             String fileName = "src/data/save/save-" + index + ".txt";
