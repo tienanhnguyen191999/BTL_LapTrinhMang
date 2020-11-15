@@ -19,6 +19,8 @@ import model.ClientState;
 import model.Room;
 import consts.Consts;
 import java.awt.Color;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 import model.SocketIO;
@@ -116,6 +118,12 @@ public class ClientThread extends Thread implements Serializable{
 					case Consts.UPDATE_PLAYER_NAME:
 						updatePlayerName();
 						break;
+                    case Consts.SAVE_GAME:
+                        saveGame();
+                        break;
+                    case Consts.LOAD_GAME:
+                        loadGame();
+                        break;
                 }
             } catch (IOException ex) {
                 System.out.println("Socket [ "+ Thread.currentThread().getName() +" ] Closed");
@@ -127,6 +135,50 @@ public class ClientThread extends Thread implements Serializable{
         }
 	}
 	
+    public void loadGame () {
+        try {
+            Room saveRoom = (Room)socketIO.getInput().readObject();
+            saveRoom.setStatus(Consts.LOADED_ROOM);
+            listRoom.add(saveRoom);
+			selectedRoom = saveRoom;
+            
+            // Create new waitingRoomThread
+            selectedRoomThread = new WaitingRoomThread();
+            selectedRoomThread.setRoom(saveRoom);
+            selectedRoomThread.setP1(this);
+			selectedRoomThread.getP1().setClientState(saveRoom.getP1());
+            listRoomThread.add(selectedRoomThread);
+        } catch (IOException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void saveGame () {
+        try {
+            if (selectedGamePlay == null){
+				selectedGamePlay = this.getGamePlayByPlayerName(this.state.getName());
+			}
+            // Get File Name
+            String fileName = (String) socketIO.getInput().readObject();
+            
+            // Save to file
+            ObjectOutputStream outFile = new ObjectOutputStream(new FileOutputStream(new File(fileName)));
+			Room saveRoom = new Room();
+			saveRoom.setMap(selectedGamePlay.getMap());
+			saveRoom.setP1(selectedGamePlay.getArr_player().get(0).getClientState());
+			saveRoom.setP2(selectedGamePlay.getArr_player().get(1).getClientState());
+			saveRoom.setSpeed(selectedGamePlay.getSpeed());
+            outFile.writeObject(saveRoom);
+            outFile.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
 	public void updatePlayerName () {
 		try {
 			int index = 0;
@@ -307,14 +359,20 @@ public class ClientThread extends Thread implements Serializable{
             selectedRoomThread = this.getWaitingRoomThreadByRoomName(newRoom.getName());
 			selectedRoomThread.getP1().setClientState(newRoom.getP1());
 			selectedRoomThread.getP2().setClientState(newRoom.getP2());
-            
+			if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
+				selectedRoomThread.getP1().setClientState(selectedRoomThread.getRoom().getP1());
+				selectedRoomThread.getP2().setClientState(selectedRoomThread.getRoom().getP2());
+			}
+			
 			GamePlayThread selectedGamePlay = new GamePlayThread();
             selectedGamePlay.addPlayterToRoom(selectedRoomThread.getP1());
             selectedGamePlay.addPlayterToRoom(selectedRoomThread.getP2());
 			selectedGamePlay.setSpeed(newRoom.getSpeed());
             selectedGamePlay.setMap(selectedRoomThread.getRoom().getMap());
-            selectedGamePlay.start(); // Active Thread
-            
+			if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
+				selectedGamePlay.setIsSaveGameLoad(true);
+			}
+			selectedGamePlay.start(); // Active Thread
             selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.START_GAME);
             selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.START_GAME);
             selectedGamePlay.startGame();
@@ -394,10 +452,12 @@ public class ClientThread extends Thread implements Serializable{
                     return;
                 }
             }
+			newRoom.setStatus(Consts.WAITING);
             
             // Success
+			
             socketIO.getOutput().writeObject(true);
-            newRoom.setStatus(Consts.WAITING);
+            selectedRoom = newRoom;
             listRoom.add(newRoom);
             
             // Create new waitingRoomThread
@@ -417,7 +477,26 @@ public class ClientThread extends Thread implements Serializable{
     private void joinRoom() {
         try {
             Room selectedRoom = (Room) socketIO.getInput().readObject();
-
+			
+            // Join to save Room
+            if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
+				// Update player name
+                selectedRoomThread = this.getWaitingRoomThreadByRoomName(selectedRoom.getName());
+                selectedRoomThread.setP2(this);
+				selectedRoomThread.getP2().getClientState().setName(this.getClientState().getName());
+				selectedRoomThread.getRoom().getP2().setName(this.getClientState().getName());
+				
+				// Send updated Room to sender
+				socketIO.getOutput().reset();
+                socketIO.getOutput().writeObject(selectedRoomThread.getRoom());
+				
+                
+                selectedRoomThread.getP2().socketIO.getOutput().writeObject(Consts.ROOM_EXISTS);
+                selectedRoomThread.getP1().socketIO.getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
+                return;
+            }
+            
+            // Join to normal Room
             for (Room room: listRoom){
                 if (selectedRoom.getName().trim().toLowerCase().equals(room.getName().trim().toLowerCase())){
                     // update room

@@ -7,7 +7,11 @@ package client.view;
 
 import consts.Consts;
 import java.awt.Image;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +20,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import map.Map;
 import model.ClientState;
 import model.Room;
 import model.SocketIO;
@@ -55,7 +60,7 @@ public class LAN extends javax.swing.JFrame {
             socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
             listRoomWaiting = (ArrayList<Room>)socketIO.getInput().readObject();
             for (Room room : listRoomWaiting){
-				String lastRoomName = room.getName() + " ("+ (room.getP2() != null ? 2 : 1)  +"/2)";
+				String lastRoomName = room.getName() + " ("+ (room.getP2() != null && room.getP2().getName() != null ? 2 : 1)  +"/2)";
                 listMapStr.addElement(lastRoomName);
             }
         } catch (IOException ex) {
@@ -74,6 +79,7 @@ public class LAN extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jFileChooseSaveFile = new javax.swing.JFileChooser();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -100,6 +106,13 @@ public class LAN extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         exitBtn = new javax.swing.JButton();
+
+        jFileChooseSaveFile.setCurrentDirectory(new java.io.File("/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/data/save"));
+        jFileChooseSaveFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jFileChooseSaveFileActionPerformed(evt);
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -381,6 +394,7 @@ public class LAN extends javax.swing.JFrame {
         try {
             String roomName = jlistRoomWaiting.getSelectedValue();
             
+			// validate
             if (roomName == null) {
                 JOptionPane.showMessageDialog(null, "No Room Selected!!!");
                 return;
@@ -390,41 +404,22 @@ public class LAN extends javax.swing.JFrame {
                 return;
             }
 			
-			if (selectedRoom.getP2() != null) {
+			if (selectedRoom.getP2() != null && selectedRoom.getP2().getName() != null) {
 				JOptionPane.showMessageDialog(null, "This Room Reach Maximum!!!");
                 return;
 			}
             
-			if (!isRegisterName){
-				// Set player name
-				socketIO.getOutput().writeObject(Consts.SET_PLAYER_NAME);
-				socketIO.getOutput().writeObject(tfPlayerName.getText());
-				boolean isValidName = (boolean) socketIO.getInput().readObject();
-				if (!isValidName){
-					JOptionPane.showMessageDialog(null, "Name is registered");
-					return;
-				}
-				isRegisterName = true;
-				this.player.setName(tfPlayerName.getText());
-			} else if (!tfPlayerName.getText().trim().toLowerCase().equals(player.getName().trim().toLowerCase())) {
-				// Update 
-				socketIO.getOutput().writeObject(Consts.UPDATE_PLAYER_NAME);
-				socketIO.getOutput().writeObject(tfPlayerName.getText());
-				boolean isValidName = (boolean) socketIO.getInput().readObject();
-				if (!isValidName){
-					JOptionPane.showMessageDialog(null, "Name is registered");
-					return;
-				}
-				this.player.setName(tfPlayerName.getName());
-			}
+			if (!registerName()) return;
 			
 			// Join room
             socketIO.getOutput().writeObject(Consts.JOIN_ROOM);
             socketIO.getOutput().writeObject(selectedRoom);
             
-            // Receive new room state
+            // Receive new room state ( update P1(Host)  State )
             Room joinedRoom = (Room) socketIO.getInput().readObject();
 			int status = (Integer) socketIO.getInput().readObject();
+			
+			// Check if room is exist
             if (status == Consts.ROOM_NOT_EXISTS){
 				JOptionPane.showMessageDialog(null, "Room not exsits");				
 				DefaultListModel newListMap = new DefaultListModel();
@@ -483,9 +478,96 @@ public class LAN extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-		JOptionPane.showMessageDialog(null, "Feature in progress");
+        if (tfPlayerName.getText().isEmpty()){
+			JOptionPane.showMessageDialog(null, "Name is required");
+			return;
+		}
+		if (!registerName()) return;
+		
+		ObjectInputStream input = null;
+        try {
+            jFileChooseSaveFile.showOpenDialog(null);
+            File saveFile = jFileChooseSaveFile.getSelectedFile();
+            input = new ObjectInputStream(new FileInputStream(saveFile));
+            // Read Object from FILE ( NOT SOCKET !!! )
+			Room saveRoom = (Room) input.readObject();
+            int index = 0;
+            String roomName = "Save_room_" + index;
+            for (Room tmp : listRoomWaiting ) {
+                if (tmp.getName().trim().toLowerCase().equals(roomName)){
+                    roomName = "Save_room_" + ++index;
+                }
+            }
+            String imagePreview = getPreviewImagePathFromSaveFile(saveFile.getAbsolutePath());
+            
+			// Update Room Info
+			saveRoom.getMap().getMapInfo().setImagePreviewPath(imagePreview);
+			saveRoom.setName(roomName);
+			saveRoom.getP1().setName(player.getName());
+			// Set P2 to Null ( for wating purpose _ State of p2 is send to server to handle ) 
+			saveRoom.getP2().setName(null);
+			
+			socketIO.getOutput().writeObject(Consts.LOAD_GAME);
+            socketIO.getOutput().writeObject(saveRoom);
+			
+			this.dispose();
+			new PrepareGame(socketIO, saveRoom, true).setVisible(true);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            JOptionPane.showMessageDialog(null, "Please choose valid save file!");
+        } finally {
+            try {
+                input.close();
+            } catch (IOException ex) {
+                Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
     }//GEN-LAST:event_jButton3ActionPerformed
 
+	public boolean registerName () {
+		try {
+		// Validate Name
+			if (!isRegisterName){
+					// Set player name
+					socketIO.getOutput().writeObject(Consts.SET_PLAYER_NAME);
+					socketIO.getOutput().writeObject(tfPlayerName.getText());
+					boolean isValidName = (boolean) socketIO.getInput().readObject();
+					if (!isValidName){
+						JOptionPane.showMessageDialog(null, "Name is registered");
+						return false;
+					}
+					isRegisterName = true;
+					this.player.setName(tfPlayerName.getText());
+
+			} else if (!tfPlayerName.getText().trim().toLowerCase().equals(player.getName().trim().toLowerCase(			))) {
+				// Update 
+				socketIO.getOutput().writeObject(Consts.UPDATE_PLAYER_NAME);
+				socketIO.getOutput().writeObject(tfPlayerName.getText());
+				boolean isValidName = (boolean) socketIO.getInput().readObject();
+				if (!isValidName){
+					JOptionPane.showMessageDialog(null, "Name is registered");
+					return false;
+				}
+				this.player.setName(tfPlayerName.getName());
+			}
+		} catch (IOException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		return true;
+	}
+	
+    private String getPreviewImagePathFromSaveFile (String fileName) {
+        System.out.println(fileName);
+        int index = Integer.parseInt(fileName.split("-")[1].split("\\.")[0]);
+        return "/data/save/image/preview-"+ index +".png";
+    }
+    
     private void tfPlayerNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfPlayerNameActionPerformed
 		
     }//GEN-LAST:event_tfPlayerNameActionPerformed
@@ -505,6 +587,10 @@ public class LAN extends javax.swing.JFrame {
     private void tfRoomSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfRoomSpeedActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_tfRoomSpeedActionPerformed
+
+    private void jFileChooseSaveFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFileChooseSaveFileActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jFileChooseSaveFileActionPerformed
 
 	private void registerMapListEvent() {
 		jlistRoomWaiting.addListSelectionListener(new ListSelectionListener() {
@@ -545,6 +631,7 @@ public class LAN extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JFileChooser jFileChooseSaveFile;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;

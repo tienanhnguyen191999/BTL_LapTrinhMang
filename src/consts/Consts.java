@@ -54,7 +54,9 @@ public class Consts {
 	public static final int GAME_UNPAUSE = 115;
 	public static final int SET_PLAYER_NAME = 116;
 	public static final int UPDATE_PLAYER_NAME = 117;
-	
+    public static final int SAVE_GAME = 118;
+    public static final int LOAD_GAME = 119;
+    
 	// For Gameplay Thread
 	public static final int COUNTER_BEFORE_START = 8; 
 	public static final int UPDATE_GAMEPLAY_STATE = 9; 
@@ -69,6 +71,7 @@ public class Consts {
     public static final int STOP = 3;
     public static final int PAUSE = 4;
     public static final int PLAY = 5;
+    public static final int LOADED_ROOM = 6;
 }
 
 

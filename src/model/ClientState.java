@@ -12,6 +12,7 @@ import java.io.Serializable;
  * @author tienanh
  */
 public class ClientState implements Serializable{
+    static final long serialVersionUID = 42L;
 	private Ball ball;
 	private Bar bar;
 	private int point;
