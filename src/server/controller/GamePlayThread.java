@@ -27,25 +27,27 @@ import map.*;
  */
 public class GamePlayThread extends Thread{
 	private int padding = 20;
-	private int delayTime, speed;
 	private boolean isPlay, isInitNewGame;
 	private boolean isSaveGameLoad = false;
 	private Map map;
 	
 	private ArrayList<ClientThread> arr_player;
+	private int speed, gameMode;
 	private Timer timer;
 	
 	GamePlayThread () {
 		arr_player = new ArrayList<ClientThread>();
+		gameMode = Consts.TWO_BALL;
 	}
 	
 	public void initNewGame (){
 		isPlay = false;
 		isInitNewGame = true;
-		delayTime = (11 - speed) * 2 + 5;
+		int delayTime = (11 - speed) * 2 + 5; // [7,9,11,...,25]
 		// Init new Map
 		timer = new Timer(delayTime, handleRerenderEachTime());
 		
+		// 2 ball mode init
 		if (!isSaveGameLoad){
 			// Init new player state
 			boolean isPlayer_1 = true;
@@ -86,6 +88,19 @@ public class GamePlayThread extends Thread{
 				client.getClientState().getBall().setColor(ballColor);
 			}
 		}
+		
+		// 1 Ball mode init
+		if (this.gameMode == Consts.ONE_BALL){
+			try {
+				arr_player.get(1).getClientState().setBall(null); // Disable 1 ball;
+				arr_player.get(0).getClientState().getBall().setColor(Color.BLUE);
+				
+				arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.ONE_BALL);
+				arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.ONE_BALL);
+			} catch (IOException ex) {
+				Logger.getLogger(GamePlayThread.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
 	}
 	
 	public ActionListener handleRerenderEachTime () {
@@ -118,8 +133,11 @@ public class GamePlayThread extends Thread{
 					isInitNewGame = false;
 					// Update ball move
 					for (ClientThread player : arr_player){
-						player.getClientState().getBall().setX(player.getClientState().getBall().getX() + player.getClientState().getBall().getSpeedX());
-						player.getClientState().getBall().setY(player.getClientState().getBall().getY() + player.getClientState().getBall().getSpeedY());
+						if (player.getClientState().getBall() != null){
+							player.getClientState().getBall().setX(player.getClientState().getBall().getX() + player.getClientState().getBall().getSpeedX());
+							player.getClientState().getBall().setY(player.getClientState().getBall().getY() + player.getClientState().getBall().getSpeedY());
+						}
+					
 					}
 					handleCollision();
 					
@@ -139,20 +157,18 @@ public class GamePlayThread extends Thread{
 					
 					// Check game over
 					try {
-						if ( checkGameOver(arr_player.get(0).getClientState(), true) ){
-							// P1 Lose
-							arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
-							arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
-							isPlay = false;
-//							timer.stop();
-						}else if ( checkGameOver(arr_player.get(1).getClientState(), false) ){
-							// P2 Lose
-							arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
-							arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
-							isPlay = false;
-//							timer.stop();
-						}
-					
+						if (arr_player.get(0).getClientState().getBall() != null && checkGameOver(arr_player.get(0).getClientState(), true) ){
+								// P1 Lose
+								arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
+								arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
+								isPlay = false;
+							}else if (arr_player.get(1).getClientState().getBall() != null && checkGameOver(arr_player.get(1).getClientState(), false) ){
+								// P2 Lose
+								arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
+								arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
+								isPlay = false;
+							}
+						
 					
 						if (map.isNoBrickLeft()) {
 							if ( arr_player.get(0).getClientState().getPoint() > arr_player.get(1).getClientState().getPoint()){
@@ -163,7 +179,6 @@ public class GamePlayThread extends Thread{
 								arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
 							}
 							// Send WIN action code
-							timer.stop();
 							isPlay = false;
 						} 
 					} catch (IOException ex) {
@@ -182,44 +197,52 @@ public class GamePlayThread extends Thread{
 			Bar bar = player.getClientState().getBar();
 			
 			// Check intersect with Edges
-			switch ( checkIntersectWithEdges(ball, bar, isP1) ){
-				case 1:
-					ball.setSpeedY(ball.getSpeedY() * -1);
-					break;
-				case 2:
-					ball.setSpeedX(ball.getSpeedX() * -1);
-					break;
-				case 3:
-					ball.setSpeedY(ball.getSpeedY() * -1);
-					break;
-				case 4:
-					ball.setSpeedX(ball.getSpeedX() * -1);
-					break;
-				default:
-					break;
+			if ( ball != null){
+				switch ( checkIntersectWithEdges(ball, bar, isP1) ){
+					case 1:
+						ball.setSpeedY(ball.getSpeedY() * -1);
+						break;
+					case 2:
+						ball.setSpeedX(ball.getSpeedX() * -1);
+						break;
+					case 3:
+						ball.setSpeedY(ball.getSpeedY() * -1);
+						break;
+					case 4:
+						ball.setSpeedX(ball.getSpeedX() * -1);
+						break;
+					default:
+						break;
+				}
+
+				// Check intersect with bricks
+				boolean isTouchBrick = true;
+				switch ( map.checkIntersectWithBrick(ball) ) {
+					case 1:
+						ball.setSpeedY(ball.getSpeedY() * -1);
+						break;
+					case 2:
+						ball.setSpeedX(ball.getSpeedX() * -1);
+						break;
+					case 3:
+						ball.setSpeedY(ball.getSpeedY() * -1);
+						break;
+					case 4:
+						ball.setSpeedX(ball.getSpeedX() * -1);
+						break;
+					default:
+						isTouchBrick = false;
+						break;				
+				}
+				
+				// This below part for 1 ball mode 
+				if (this.gameMode == Consts.ONE_BALL){
+					// Check is touch opponent bar
+					checkIntersectWithOpponentBar(ball, arr_player.get(0).getClientState().getBar(), arr_player.get(1).getClientState().getBar(), isP1);
+				}
+				
+				if (isTouchBrick) player.getClientState().setPoint( player.getClientState().getPoint() + 1 );
 			}
-			
-			// Check intersect with bricks
-			boolean isTouchBrick = true;
-			switch ( map.checkIntersectWithBrick(ball) ) {
-				case 1:
-					ball.setSpeedY(ball.getSpeedY() * -1);
-					break;
-				case 2:
-					ball.setSpeedX(ball.getSpeedX() * -1);
-					break;
-				case 3:
-					ball.setSpeedY(ball.getSpeedY() * -1);
-					break;
-				case 4:
-					ball.setSpeedX(ball.getSpeedX() * -1);
-					break;
-				default:
-					isTouchBrick = false;
-					break;
-			}
-			if (isTouchBrick) player.getClientState().setPoint( player.getClientState().getPoint() + 1 );
-			
 			isP1 = !isP1;
 		}
 	}
@@ -265,6 +288,29 @@ public class GamePlayThread extends Thread{
 		}
 		// no collision
 		return -1;
+	}
+	
+		
+	public void checkIntersectWithOpponentBar (Ball ball, Bar bar_p1, Bar bar_p2, boolean is_p1_ball) {
+		if (is_p1_ball) {
+			if (ball.getY() < bar_p2.getY() + bar_p2.getHeight() && ball.getX() > bar_p2.getX() && ball.getX() < bar_p2.getX() + bar_p2.getWidth() && ball.getSpeedY() < 0){
+				// Set Ball to P2
+				this.arr_player.get(1).getClientState().setBall(ball);
+				this.arr_player.get(1).getClientState().getBall().setColor(Color.GREEN);
+				this.arr_player.get(1).getClientState().getBall().setSpeedY(this.arr_player.get(1).getClientState().getBall().getSpeedY() * -1);
+				// Disable p1's ball
+				this.arr_player.get(0).getClientState().setBall(null);
+			}
+		} else {
+			if (ball.getY() + ball.getRadius() > bar_p1.getY() && ball.getX() > bar_p1.getX() && ball.getX() < bar_p1.getX() + bar_p1.getWidth() && ball.getSpeedY() > 0){
+				// Set Ball to P1
+				this.arr_player.get(0).getClientState().setBall(ball);
+				this.arr_player.get(0).getClientState().getBall().setColor(Color.BLUE);
+				this.arr_player.get(0).getClientState().getBall().setSpeedY(this.arr_player.get(0).getClientState().getBall().getSpeedY() * -1);
+				// Disable p2's ball
+				this.arr_player.get(1).getClientState().setBall(null);
+			}
+		}
 	}
 	
 	private boolean checkGameOver (ClientState player, boolean isBarOnBottom) {
@@ -329,6 +375,10 @@ public class GamePlayThread extends Thread{
     public Map getMap() {
         return map;
     }
+
+	public void setGameMode(int gameMode) {
+		this.gameMode = gameMode;
+	}
 
 	public void setIsSaveGameLoad(boolean isSaveGameLoad) {
 		this.isSaveGameLoad = isSaveGameLoad;

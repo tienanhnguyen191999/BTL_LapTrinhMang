@@ -72,6 +72,10 @@ public class Consts {
     public static final int PAUSE = 4;
     public static final int PLAY = 5;
     public static final int LOADED_ROOM = 6;
+	
+	// Game Mode 
+	public static final int TWO_BALL = 51;
+	public static final int ONE_BALL = 52;
 }
 
 

@@ -17,7 +17,16 @@ public class Room implements Serializable{
     private Map map;
     private int speed;
 	private ClientState p1, p2;
-    private Integer status; // [Waiting, Play, NotPlay]
+    private Integer status; // [Waiting, Load, NotPlay]
+	private Integer gameMode;
+
+	public Integer getGameMode() {
+		return gameMode;
+	}
+
+	public void setGameMode(Integer gameMode) {
+		this.gameMode = gameMode;
+	}
 
     public int getSpeed() {
         return speed;
