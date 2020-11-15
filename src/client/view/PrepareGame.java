@@ -33,6 +33,7 @@ public class PrepareGame extends javax.swing.JFrame {
     private Room room;
     private SocketIO socketIO;
 	private boolean isHost;
+	private Thread listenThread;
 	
 	public PrepareGame(SocketIO socketIO, Room roomInstance, boolean isHost) {
 		this.room = roomInstance;
@@ -42,7 +43,7 @@ public class PrepareGame extends javax.swing.JFrame {
 		manualBindEvents();
 		initNewRoom();
         // Listening on room state change(p1, p2, ball, bar, message)
-        (new Thread() {
+        listenThread = (new Thread() {
                 public void run() {
                     try {
                         while(true){
@@ -78,7 +79,8 @@ public class PrepareGame extends javax.swing.JFrame {
                         Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-        }).start();
+        });
+		listenThread.start();
 	}
 	
 	public void handleP2OutRoom () {
@@ -627,12 +629,13 @@ public class PrepareGame extends javax.swing.JFrame {
 	
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		try {
-		if (isHost){
-			// Remove Room
-			socketIO.getOutput().writeObject(Consts.REMOVE_ROOM);
-		} else {
-			socketIO.getOutput().writeObject(Consts.OUT_ROOM);
-		}
+			if (isHost){
+				// Remove Room
+				socketIO.getOutput().writeObject(Consts.REMOVE_ROOM);
+			} else {
+				socketIO.getOutput().writeObject(Consts.OUT_ROOM);
+			}
+			listenThread.stop();
 		} catch (IOException ex) {
 			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
 		}

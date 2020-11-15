@@ -140,6 +140,7 @@ public class ClientThread extends Thread implements Serializable{
             Room saveRoom = (Room)socketIO.getInput().readObject();
             saveRoom.setStatus(Consts.LOADED_ROOM);
             listRoom.add(saveRoom);
+			selectedRoom = saveRoom;
             
             // Create new waitingRoomThread
             selectedRoomThread = new WaitingRoomThread();
@@ -358,14 +359,20 @@ public class ClientThread extends Thread implements Serializable{
             selectedRoomThread = this.getWaitingRoomThreadByRoomName(newRoom.getName());
 			selectedRoomThread.getP1().setClientState(newRoom.getP1());
 			selectedRoomThread.getP2().setClientState(newRoom.getP2());
-            
+			if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
+				selectedRoomThread.getP1().setClientState(selectedRoomThread.getRoom().getP1());
+				selectedRoomThread.getP2().setClientState(selectedRoomThread.getRoom().getP2());
+			}
+			
 			GamePlayThread selectedGamePlay = new GamePlayThread();
             selectedGamePlay.addPlayterToRoom(selectedRoomThread.getP1());
             selectedGamePlay.addPlayterToRoom(selectedRoomThread.getP2());
 			selectedGamePlay.setSpeed(newRoom.getSpeed());
             selectedGamePlay.setMap(selectedRoomThread.getRoom().getMap());
-            selectedGamePlay.start(); // Active Thread
-            
+			if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
+				selectedGamePlay.setIsSaveGameLoad(true);
+			}
+			selectedGamePlay.start(); // Active Thread
             selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.START_GAME);
             selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.START_GAME);
             selectedGamePlay.startGame();
@@ -445,10 +452,12 @@ public class ClientThread extends Thread implements Serializable{
                     return;
                 }
             }
+			newRoom.setStatus(Consts.WAITING);
             
             // Success
+			
             socketIO.getOutput().writeObject(true);
-            newRoom.setStatus(Consts.WAITING);
+            selectedRoom = newRoom;
             listRoom.add(newRoom);
             
             // Create new waitingRoomThread
@@ -468,13 +477,14 @@ public class ClientThread extends Thread implements Serializable{
     private void joinRoom() {
         try {
             Room selectedRoom = (Room) socketIO.getInput().readObject();
-            
+			
             // Join to save Room
             if (selectedRoom.getStatus() == Consts.LOADED_ROOM){
 				// Update player name
                 selectedRoomThread = this.getWaitingRoomThreadByRoomName(selectedRoom.getName());
                 selectedRoomThread.setP2(this);
 				selectedRoomThread.getP2().getClientState().setName(this.getClientState().getName());
+				selectedRoomThread.getRoom().getP2().setName(this.getClientState().getName());
 				
 				// Send updated Room to sender
 				socketIO.getOutput().reset();

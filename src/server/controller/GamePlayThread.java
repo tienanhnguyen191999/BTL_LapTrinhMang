@@ -29,6 +29,7 @@ public class GamePlayThread extends Thread{
 	private int padding = 20;
 	private int delayTime, speed;
 	private boolean isPlay, isInitNewGame;
+	private boolean isSaveGameLoad = false;
 	private Map map;
 	
 	private ArrayList<ClientThread> arr_player;
@@ -45,43 +46,45 @@ public class GamePlayThread extends Thread{
 		// Init new Map
 		timer = new Timer(delayTime, handleRerenderEachTime());
 		
-		// Init new player state
-		boolean isPlayer_1 = true;
-		for (ClientThread client : arr_player){
-			client.getClientState().setPoint(0);
-			Color ballColor = client.getClientState().getBall().getColor();
-			if (isPlayer_1){
-				// Init ball and bar
-				isPlayer_1 = false;
-				client.getClientState().setBar(new Bar(
-					Consts.BAR_WIDTH, 
-					Consts.BAR_HEIGHT, 
-					Consts.BAR_SPEED,  
-					Consts.GAMPLAY_WIDTH/2 - Consts.BAR_WIDTH / 2, 
-					Consts.GAMPLAY_HEIGHT - Consts.BAR_HEIGHT - padding)
-				);
-				
-				client.getClientState().setBall(new Ball(
-					Consts.BALL_RADIUS, -1, -1, 
-					Consts.GAMPLAY_WIDTH/2 - Consts.BALL_RADIUS / 2, 
-					Consts.GAMPLAY_HEIGHT - padding - Consts.BAR_HEIGHT - Consts.BALL_RADIUS)
-				);
-			}else {
-				client.getClientState().setBar(new Bar(
-					Consts.BAR_WIDTH, 
-					Consts.BAR_HEIGHT, 
-					Consts.BAR_SPEED, 
-					Consts.GAMPLAY_WIDTH/2 - Consts.BAR_WIDTH / 2,
-					padding)
-				);
-				
-				client.getClientState().setBall(new Ball(
-					Consts.BALL_RADIUS, 1, 1,
-					Consts.GAMPLAY_WIDTH/2 - Consts.BALL_RADIUS / 2, 
-					padding + Consts.BAR_HEIGHT)
-				);
+		if (!isSaveGameLoad){
+			// Init new player state
+			boolean isPlayer_1 = true;
+			for (ClientThread client : arr_player){
+				client.getClientState().setPoint(0);
+				Color ballColor = client.getClientState().getBall().getColor();
+				if (isPlayer_1){
+					// Init ball and bar
+					isPlayer_1 = false;
+					client.getClientState().setBar(new Bar(
+						Consts.BAR_WIDTH, 
+						Consts.BAR_HEIGHT, 
+						Consts.BAR_SPEED,  
+						Consts.GAMPLAY_WIDTH/2 - Consts.BAR_WIDTH / 2, 
+						Consts.GAMPLAY_HEIGHT - Consts.BAR_HEIGHT - padding)
+					);
+
+					client.getClientState().setBall(new Ball(
+						Consts.BALL_RADIUS, -1, -1, 
+						Consts.GAMPLAY_WIDTH/2 - Consts.BALL_RADIUS / 2, 
+						Consts.GAMPLAY_HEIGHT - padding - Consts.BAR_HEIGHT - Consts.BALL_RADIUS)
+					);
+				}else {
+					client.getClientState().setBar(new Bar(
+						Consts.BAR_WIDTH, 
+						Consts.BAR_HEIGHT, 
+						Consts.BAR_SPEED, 
+						Consts.GAMPLAY_WIDTH/2 - Consts.BAR_WIDTH / 2,
+						padding)
+					);
+
+					client.getClientState().setBall(new Ball(
+						Consts.BALL_RADIUS, 1, 1,
+						Consts.GAMPLAY_WIDTH/2 - Consts.BALL_RADIUS / 2, 
+						padding + Consts.BAR_HEIGHT)
+					);
+				}
+				client.getClientState().getBall().setColor(ballColor);
 			}
-			client.getClientState().getBall().setColor(ballColor);
 		}
 	}
 	
@@ -326,4 +329,8 @@ public class GamePlayThread extends Thread{
     public Map getMap() {
         return map;
     }
+
+	public void setIsSaveGameLoad(boolean isSaveGameLoad) {
+		this.isSaveGameLoad = isSaveGameLoad;
+	}
 }
