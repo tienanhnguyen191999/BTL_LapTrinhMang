@@ -19,16 +19,12 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import model.Brick;
 import model.ClientState;
@@ -142,9 +138,9 @@ public class GamePlay extends JPanel{
 		g.fillRect(p2.getBar().getX(), p2.getBar().getY(), p2.getBar().getWidth(), p2.getBar().getHeight());
 
 		// Draw brick
-		for (int i = 0 ; i < 3 ; i++) {
-			for (int j = 0; j < 12; j++){
-				Brick curBrick = this.mapState.getBricks()[i*12 + j];
+		for (int i = 0 ; i < this.mapState.getRow() ; i++) {
+			for (int j = 0; j < this.mapState.getCol(); j++){
+				Brick curBrick = this.mapState.getBricks()[i*this.mapState.getCol()+ j];
 				if ( curBrick.getIsDisplay()){
 					g.setColor(Color.YELLOW);
 					g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);

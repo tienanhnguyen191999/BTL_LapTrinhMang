@@ -199,7 +199,7 @@ public class PrepareGame extends javax.swing.JFrame {
     private void initNewRoom() {
 		tfDes.setText(room.getMap().getMapInfo().getDes()); // Listen on P2 Change
 		tfGameSpeed.setText(new Integer(room.getSpeed()).toString());
-		tfGameMode.setText(room.getGameMode() == Consts.TWO_BALL ? "2 Ball" : "1 Ball");
+		tfGameMode.setText(room.getGameMode() != null ? room.getGameMode() == Consts.TWO_BALL ? "2 Ball" : "1 Ball" : "2 Ball");
 		tfMapName.setText(room.getName());
 		ImageIcon icon = new ImageIcon(getClass().getResource(room.getMap().getMapInfo().getImagePreviewPath()));
 		Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);

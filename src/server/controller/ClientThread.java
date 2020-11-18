@@ -374,7 +374,7 @@ public class ClientThread extends Thread implements Serializable{
 				selectedGamePlay.setIsSaveGameLoad(true);
 			}
 			// One Ball mode
-			if (selectedRoom.getGameMode() == Consts.ONE_BALL){
+			if (selectedRoom.getStatus() != Consts.LOADED_ROOM && selectedRoom.getGameMode() == Consts.ONE_BALL){
 				selectedGamePlay.setGameMode(Consts.ONE_BALL);
 			}
 			selectedGamePlay.start(); // Active Thread
