@@ -17,14 +17,24 @@ public class Map4 extends Map implements Serializable{
 	public Map4() {
 		super();
 		int padding = 10;
-		mapState.setBricks(new Brick[3 * 12]);
-		int totalBrickHeight = 3 * Consts.BRICK_HEIGHT + 2 * padding;
-		for (int i = 0 ; i < 3 ; i++) {
-			for (int j = 0; j < 12; j++){
-				Brick tmp = new Brick(Consts.BRICK_WIDTH ,Consts.BRICK_HEIGHT, 65 + j * Consts.BRICK_WIDTH + j*padding, (consts.Consts.GAMPLAY_HEIGHT - totalBrickHeight )/ 2 + i*Consts.BRICK_HEIGHT + i*padding);
-				mapState.getBricks()[i*12 + j] = tmp;
-				if ( j % 3 == 0 ) mapState.getBricks()[i*12 + j].setIsDisplay(false);
+		int row = 16;
+		int col = 21;
+		mapState.setRow(row);
+		mapState.setCol(col);
+		mapState.setBricks(new Brick[row * col]);
+		for (int i = 0 ; i < row ; i++) {
+			for (int j = 0; j < col; j++){
+				Brick tmp = new Brick(Consts.BRICK_WIDTH ,Consts.BRICK_HEIGHT, 70 + j * Consts.BRICK_WIDTH + j*padding,
+                                    200+Consts.BRICK_HEIGHT + i*Consts.BRICK_HEIGHT + i*padding);
+				mapState.getBricks()[i*col + j] = tmp;
+				if ( (j + i) % 2 == 0 && j%4 == 0 || i==15) mapState.getBricks()[i*col + j].setIsDisplay(false);
 			}	
 		}
+		
+		// Map Info
+        mapInfo.setName("Map4");
+		mapInfo.setType("Small");
+		mapInfo.setDes("More Info Here: github.com/tienanhnguyen191999/BTL_LapTrinhMang");
+		mapInfo.setImagePreviewPath("/data/mapPreview/map-4.png");
 	}
 }

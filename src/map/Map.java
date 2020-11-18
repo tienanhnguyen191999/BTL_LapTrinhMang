@@ -32,16 +32,16 @@ public abstract class Map implements Serializable{
 	
 	public int checkIntersectWithBrick (Ball ball) {
 		Rectangle rectball  = new Rectangle(ball.getX(), ball.getY(), ball.getRadius(), ball.getRadius());
-		for (int i = 0 ; i < 3 ; i++) {
-			for (int j = 0; j < 12; j++){
-				if ( this.mapState.getBricks()[i*12 + j].getIsDisplay() ){
-					Rectangle curBrick = new Rectangle(this.mapState.getBricks()[i*12 + j].getX(), this.mapState.getBricks()[i*12 + j].getY(), mapState.getBricks()[i*12 + j].getWidth(), mapState.getBricks()[i*12 + j].getHeight());
+		for (int i = 0 ; i < mapState.getRow() ; i++) {
+			for (int j = 0; j < mapState.getCol(); j++){
+				if ( this.mapState.getBricks()[i*mapState.getCol() + j].getIsDisplay() ){
+					Rectangle curBrick = new Rectangle(this.mapState.getBricks()[i*mapState.getCol()+ j].getX(), this.mapState.getBricks()[i*mapState.getCol()+ j].getY(), mapState.getBricks()[i*mapState.getCol()+ j].getWidth(), mapState.getBricks()[i*mapState.getCol()+ j].getHeight());
 					if ( curBrick.intersects(rectball) ){
 						// return the ball side that hit
-						int side = calculateBallIntersectSide(mapState.getBricks()[i*12 + j], ball);
+						int side = calculateBallIntersectSide(mapState.getBricks()[i*mapState.getCol()+ j], ball);
 						if (side == -1) continue;
 						// Disappear brick
-						mapState.getBricks()[i*12 + j].setIsDisplay(false); 
+						mapState.getBricks()[i*mapState.getCol()+ j].setIsDisplay(false); 
 						return side;
 					}
 				}

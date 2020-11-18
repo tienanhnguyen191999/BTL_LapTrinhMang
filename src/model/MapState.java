@@ -13,6 +13,8 @@ import java.io.Serializable;
  */
 public class MapState implements Serializable{
 	private Brick[] bricks;
+	private int row;
+	private int col;
 
 	public MapState() {
 	}
@@ -21,6 +23,22 @@ public class MapState implements Serializable{
 		return bricks;
 	}
 
+	public int getRow() {
+		return row;
+	}
+
+	public int getCol() {
+		return col;
+	}
+
+	public void setRow(int row) {
+		this.row = row;
+	}
+
+	public void setCol(int col) {
+		this.col = col;
+	}
+	
 	public void setBricks(Brick[] bricks) {
 		this.bricks = bricks;
 	}
