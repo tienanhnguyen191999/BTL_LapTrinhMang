@@ -30,46 +30,47 @@ import model.SocketIO;
  * @author tienanh
  */
 public class LAN extends javax.swing.JFrame {
+
 	private ClientState player;
-    private ArrayList<Room> listRoomWaiting;
-    private Room selectedRoom;
+	private ArrayList<Room> listRoomWaiting;
+	private Room selectedRoom;
 	private SocketIO socketIO;
 	private boolean isRegisterName;
 	private DefaultListModel listMapStr;
-	
+
 	public LAN(SocketIO socketIO, ClientState player, boolean isRegisterName) {
-        this.player = player;
-        this.socketIO = socketIO;
-        this.isRegisterName = isRegisterName;
+		this.player = player;
+		this.socketIO = socketIO;
+		this.isRegisterName = isRegisterName;
 		initComponents();
-        initMapData();
+		initMapData();
 	}
 
-    public void initMapData(){
+	public void initMapData() {
 		listMapStr = new DefaultListModel();
 		getListRoom();
 		this.registerMapListEvent();
 		jlistRoomWaiting.setModel(listMapStr);
-		if (isRegisterName){
+		if (isRegisterName) {
 			this.tfPlayerName.setText(player.getName());
 		}
-    }
-	
-	public void getListRoom () {
-		try {
-            socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
-            listRoomWaiting = (ArrayList<Room>)socketIO.getInput().readObject();
-            for (Room room : listRoomWaiting){
-				String lastRoomName = room.getName() + " ("+ (room.getP2() != null && room.getP2().getName() != null ? 2 : 1)  +"/2)";
-                listMapStr.addElement(lastRoomName);
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-        } 
 	}
-    
+
+	public void getListRoom() {
+		try {
+			socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
+			listRoomWaiting = (ArrayList<Room>) socketIO.getInput().readObject();
+			for (Room room : listRoomWaiting) {
+				String lastRoomName = room.getName() + " (" + (room.getP2() != null && room.getP2().getName() != null ? 2 : 1) + "/2)";
+				listMapStr.addElement(lastRoomName);
+			}
+		} catch (IOException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+
 	/**
 	 * This method is called from within the constructor to initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is always
@@ -391,56 +392,58 @@ public class LAN extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        try {
-            String roomName = jlistRoomWaiting.getSelectedValue();
-            
+		try {
+			String roomName = jlistRoomWaiting.getSelectedValue();
+
 			// validate
-            if (roomName == null) {
-                JOptionPane.showMessageDialog(null, "No Room Selected!!!");
-                return;
-            }
-            if (tfPlayerName.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "No Name Provived!!!");
-                return;
-            }
-			
+			if (roomName == null) {
+				JOptionPane.showMessageDialog(null, "No Room Selected!!!");
+				return;
+			}
+			if (tfPlayerName.getText().isEmpty()) {
+				JOptionPane.showMessageDialog(null, "No Name Provived!!!");
+				return;
+			}
+
 			if (selectedRoom.getP2() != null && selectedRoom.getP2().getName() != null) {
 				JOptionPane.showMessageDialog(null, "This Room Reach Maximum!!!");
-                return;
+				return;
 			}
-            
-			if (!registerName()) return;
-			
+
+			if (!registerName()) {
+				return;
+			}
+
 			// Join room
-            socketIO.getOutput().writeObject(Consts.JOIN_ROOM);
-            socketIO.getOutput().writeObject(selectedRoom);
-            
-            // Receive new room state ( update P1(Host)  State )
-            Room joinedRoom = (Room) socketIO.getInput().readObject();
+			socketIO.getOutput().writeObject(Consts.JOIN_ROOM);
+			socketIO.getOutput().writeObject(selectedRoom);
+
+			// Receive new room state ( update P1(Host)  State )
+			Room joinedRoom = (Room) socketIO.getInput().readObject();
 			int status = (Integer) socketIO.getInput().readObject();
-			
+
 			// Check if room is exist
-            if (status == Consts.ROOM_NOT_EXISTS){
-				JOptionPane.showMessageDialog(null, "Room not exsits");				
+			if (status == Consts.ROOM_NOT_EXISTS) {
+				JOptionPane.showMessageDialog(null, "Room not exsits");
 				DefaultListModel newListMap = new DefaultListModel();
-				
+
 				socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
-				listRoomWaiting = (ArrayList<Room>)socketIO.getInput().readObject();
-				for (Room room : listRoomWaiting){
-					String lastRoomName = room.getName() + " ("+ (room.getP2() != null ? 2 : 1)  +"/2)";
+				listRoomWaiting = (ArrayList<Room>) socketIO.getInput().readObject();
+				for (Room room : listRoomWaiting) {
+					String lastRoomName = room.getName() + " (" + (room.getP2() != null ? 2 : 1) + "/2)";
 					newListMap.addElement(lastRoomName);
 				}
 				jlistRoomWaiting.setModel(newListMap);
 				return;
 			}
-            this.dispose();
-            new PrepareGame(socketIO, joinedRoom, false).setVisible(true);
-        } catch (IOException ex) {
-            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-        }
-		
+			this.dispose();
+			new PrepareGame(socketIO, joinedRoom, false).setVisible(true);
+		} catch (IOException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void exitBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitBtnActionPerformed
@@ -454,101 +457,93 @@ public class LAN extends javax.swing.JFrame {
     }//GEN-LAST:event_exitBtnActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        try {
-            if (tfPlayerName.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "No Name Provived!!!");
-                return;
-            }
+		try {
+			if (tfPlayerName.getText().isEmpty()) {
+				JOptionPane.showMessageDialog(null, "No Name Provived!!!");
+				return;
+			}
 			if (!isRegisterName || !tfPlayerName.getText().trim().toLowerCase().equals(player.getName())) {
 				socketIO.getOutput().writeObject(Consts.SET_PLAYER_NAME);
 				socketIO.getOutput().writeObject(tfPlayerName.getText());
 				boolean isValidName = (boolean) socketIO.getInput().readObject();
-				if (!isValidName){
+				if (!isValidName) {
 					JOptionPane.showMessageDialog(null, "Name is Registered");
 					return;
 				}
 				isRegisterName = true;
 				this.player.setName(tfPlayerName.getText());
 			}
-            this.dispose();
-            new CreateRoom(socketIO, player).setVisible(true);
-        } catch (Exception ex) {
-            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-        }
+			this.dispose();
+			new CreateRoom(socketIO, player).setVisible(true);
+		} catch (Exception ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		}
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        if (tfPlayerName.getText().isEmpty()){
-			JOptionPane.showMessageDialog(null, "Name is required");
-			return;
-		}
-		if (!registerName()) return;
-		
-		ObjectInputStream input = null;
-        try {
-            jFileChooseSaveFile.showOpenDialog(null);
-            File saveFile = jFileChooseSaveFile.getSelectedFile();
-            input = new ObjectInputStream(new FileInputStream(saveFile));
-            // Read Object from FILE ( NOT SOCKET !!! )
+		try {
+			if (tfPlayerName.getText().isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Name is required");
+				return;
+			}
+			if (!registerName()) {
+				return;
+			}
+			
+			jFileChooseSaveFile.showOpenDialog(null);
+			File saveFile = jFileChooseSaveFile.getSelectedFile();
+			ObjectInputStream input = new ObjectInputStream(new FileInputStream(saveFile));
+			// Read Object from FILE ( NOT SOCKET !!! )
 			Room saveRoom = (Room) input.readObject();
-            int index = 0;
-            String roomName = "Save_room_" + index;
-            for (Room tmp : listRoomWaiting ) {
-                if (tmp.getName().trim().toLowerCase().equals(roomName)){
-                    roomName = "Save_room_" + ++index;
-                }
-            }
-            String imagePreview = getPreviewImagePathFromSaveFile(saveFile.getAbsolutePath());
-            
+			int index = 0;
+			String roomName = "Save_room_" + index;
+			for (Room tmp : listRoomWaiting) {
+				if (tmp.getName().trim().toLowerCase().equals(roomName)) {
+					roomName = "Save_room_" + ++index;
+				}
+			}
+			String imagePreview = getPreviewImagePathFromSaveFile(saveFile.getAbsolutePath());
+			
 			// Update Room Info
 			saveRoom.getMap().getMapInfo().setImagePreviewPath(imagePreview);
 			saveRoom.setName(roomName);
 			saveRoom.getP1().setName(player.getName());
-			// Set P2 to Null ( for wating purpose _ State of p2 is send to server to handle ) 
+			// Set P2 to Null ( for wating purpose _ State of p2 is send to server to handle )
 			saveRoom.getP2().setName(null);
 			
 			socketIO.getOutput().writeObject(Consts.LOAD_GAME);
-            socketIO.getOutput().writeObject(saveRoom);
+			socketIO.getOutput().writeObject(saveRoom);
 			
 			this.dispose();
 			new PrepareGame(socketIO, saveRoom, true).setVisible(true);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            JOptionPane.showMessageDialog(null, "Please choose valid save file!");
-        } finally {
-            try {
-                input.close();
-            } catch (IOException ex) {
-                Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
+		} catch (IOException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (ClassNotFoundException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		}
     }//GEN-LAST:event_jButton3ActionPerformed
 
-	public boolean registerName () {
+	public boolean registerName() {
 		try {
-		// Validate Name
-			if (!isRegisterName){
-					// Set player name
-					socketIO.getOutput().writeObject(Consts.SET_PLAYER_NAME);
-					socketIO.getOutput().writeObject(tfPlayerName.getText());
-					boolean isValidName = (boolean) socketIO.getInput().readObject();
-					if (!isValidName){
-						JOptionPane.showMessageDialog(null, "Name is registered");
-						return false;
-					}
-					isRegisterName = true;
-					this.player.setName(tfPlayerName.getText());
+			// Validate Name
+			if (!isRegisterName) {
+				// Set player name
+				socketIO.getOutput().writeObject(Consts.SET_PLAYER_NAME);
+				socketIO.getOutput().writeObject(tfPlayerName.getText());
+				boolean isValidName = (boolean) socketIO.getInput().readObject();
+				if (!isValidName) {
+					JOptionPane.showMessageDialog(null, "Name is registered");
+					return false;
+				}
+				isRegisterName = true;
+				this.player.setName(tfPlayerName.getText());
 
-			} else if (!tfPlayerName.getText().trim().toLowerCase().equals(player.getName().trim().toLowerCase(			))) {
+			} else if (!tfPlayerName.getText().trim().toLowerCase().equals(player.getName().trim().toLowerCase())) {
 				// Update 
 				socketIO.getOutput().writeObject(Consts.UPDATE_PLAYER_NAME);
 				socketIO.getOutput().writeObject(tfPlayerName.getText());
 				boolean isValidName = (boolean) socketIO.getInput().readObject();
-				if (!isValidName){
+				if (!isValidName) {
 					JOptionPane.showMessageDialog(null, "Name is registered");
 					return false;
 				}
@@ -561,47 +556,47 @@ public class LAN extends javax.swing.JFrame {
 		}
 		return true;
 	}
-	
-    private String getPreviewImagePathFromSaveFile (String fileName) {
-        System.out.println(fileName);
-        int index = Integer.parseInt(fileName.split("-")[1].split("\\.")[0]);
-        return "/data/save/image/preview-"+ index +".png";
-    }
-    
+
+	private String getPreviewImagePathFromSaveFile(String fileName) {
+		System.out.println(fileName);
+		int index = Integer.parseInt(fileName.split("-")[1].split("\\.")[0]);
+		return "/data/save/image/preview-" + index + ".png";
+	}
+
     private void tfPlayerNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfPlayerNameActionPerformed
-		
+
     }//GEN-LAST:event_tfPlayerNameActionPerformed
 
     private void tfPlayerNameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfPlayerNameKeyPressed
-        
+
     }//GEN-LAST:event_tfPlayerNameKeyPressed
 
     private void tfPlayerNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfPlayerNameKeyTyped
-		
+
     }//GEN-LAST:event_tfPlayerNameKeyTyped
 
     private void tfPlayerNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfPlayerNameKeyReleased
-        player.setName(tfPlayerName.getText());
+		player.setName(tfPlayerName.getText());
     }//GEN-LAST:event_tfPlayerNameKeyReleased
 
     private void tfRoomSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfRoomSpeedActionPerformed
-        // TODO add your handling code here:
+		// TODO add your handling code here:
     }//GEN-LAST:event_tfRoomSpeedActionPerformed
 
     private void jFileChooseSaveFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFileChooseSaveFileActionPerformed
-        // TODO add your handling code here:
+		// TODO add your handling code here:
     }//GEN-LAST:event_jFileChooseSaveFileActionPerformed
 
 	private void registerMapListEvent() {
 		jlistRoomWaiting.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent arg0) {
-                if (!arg0.getValueIsAdjusting()) {
-					if (jlistRoomWaiting.getSelectedValue() != null){
+			@Override
+			public void valueChanged(ListSelectionEvent arg0) {
+				if (!arg0.getValueIsAdjusting()) {
+					if (jlistRoomWaiting.getSelectedValue() != null) {
 						String roomName = jlistRoomWaiting.getSelectedValue().trim().split(" ")[0];
 						selectedRoom = getRoomByName(roomName);
 
-						ImageIcon icon = new ImageIcon(getClass().getResource(selectedRoom.getMap().getMapInfo().getImagePreviewPath())); 
+						ImageIcon icon = new ImageIcon(getClass().getResource(selectedRoom.getMap().getMapInfo().getImagePreviewPath()));
 						Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
 						ImageIcon result = new ImageIcon(resize);
 						imagePreview.setIcon(result);
@@ -611,20 +606,20 @@ public class LAN extends javax.swing.JFrame {
 						tfRoomName.setText(selectedRoom.getName());
 						tfRoomSpeed.setText(new Integer(selectedRoom.getSpeed()).toString());
 					}
-                }
-            }
-        });
+				}
+			}
+		});
 	}
-    
-    private Room getRoomByName(String roomName) {
-        for (Room room : listRoomWaiting){
-            if (room.getName().equals(roomName)){
-                return room;
-            }
-        }
-        return null;
-    }
-    
+
+	private Room getRoomByName(String roomName) {
+		for (Room room : listRoomWaiting) {
+			if (room.getName().equals(roomName)) {
+				return room;
+			}
+		}
+		return null;
+	}
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton exitBtn;
     private javax.swing.JLabel imagePreview;

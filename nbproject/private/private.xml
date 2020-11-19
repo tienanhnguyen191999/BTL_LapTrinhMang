@@ -3,22 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/view/Game.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/map/Map5.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/controller/Client.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/controller/GamePlay.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/map/Map2.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/consts/Consts.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/map/Map.java</file>
             <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/view/LAN.java</file>
             <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/server/controller/ClientThread.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/map/controller/TestMap.java</file>
+            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/view/Game.java</file>
             <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/server/controller/GamePlayThread.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/model/MapState.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/map/Map1.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/view/CreateRoom.java</file>
+            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/controller/Client.java</file>
+            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/controller/GamePlay.java</file>
             <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/client/view/PrepareGame.java</file>
-            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/map/Map3.java</file>
+            <file>file:/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/consts/Consts.java</file>
         </group>
     </open-files>
 </project-private>

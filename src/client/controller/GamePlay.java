@@ -40,6 +40,7 @@ public class GamePlay extends JPanel{
     private int width, height, padding = 50;
 	private boolean isHost;
 	private boolean isPlay;
+	private boolean inProgress;
 	private int gameMode;
 	
 	private boolean isPause;
@@ -62,6 +63,7 @@ public class GamePlay extends JPanel{
 		p1 = new ClientState();
 		p2 = new ClientState();
         isEnemyDisconnected = false;
+		inProgress = false;
 		isPlay = true;
         initNewGame();
         initGif();
@@ -312,13 +314,12 @@ public class GamePlay extends JPanel{
 		}
 	}
 	
-	public void updateGamePlayState () {
+	public synchronized void updateGamePlayState () {
 		try {
 			p1 = (ClientState)socketIO.getInput().readObject();
 			p2 = (ClientState)socketIO.getInput().readObject();
 			this.mapState = (MapState)socketIO.getInput().readObject();
 			isPlay = true;
-//			isShowCounter = false;
 			customRepaint();
 		} catch (IOException ex) {
 			Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);

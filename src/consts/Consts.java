@@ -56,7 +56,7 @@ public class Consts {
 	public static final int UPDATE_PLAYER_NAME = 117;
     public static final int SAVE_GAME = 118;
     public static final int LOAD_GAME = 119;
-    
+
 	// For Gameplay Thread
 	public static final int COUNTER_BEFORE_START = 8; 
 	public static final int UPDATE_GAMEPLAY_STATE = 9; 

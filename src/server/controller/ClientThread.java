@@ -129,10 +129,22 @@ public class ClientThread extends Thread implements Serializable{
                 System.out.println("Socket [ "+ Thread.currentThread().getName() +" ] Closed");
                 this.state.isSocketClose = true;
 				removePlayerFromRoom();
+				removePlayerFromListPLayer();
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+	}
+	
+	public void removePlayerFromListPLayer () {
+		int index = 0;
+		for (String clientName : listPlayer){
+			if (clientName.toLowerCase().trim().equals(this.getClientState().getName().toLowerCase().trim())){
+				listPlayer.remove(index);
+				return;
+			}
+			index++;
+		}
 	}
 	
     public void loadGame () {
@@ -233,13 +245,13 @@ public class ClientThread extends Thread implements Serializable{
 			}
 			
 			for (int i = 3 ; i >= 0 ; i--){
-				selectedRoomThread.getP1().getSocketIO().getOutput().reset();
 				selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.COUNTER_BEFORE_START);
                 selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(i);
+				selectedRoomThread.getP1().getSocketIO().getOutput().reset();
                 
-                selectedRoomThread.getP2().getSocketIO().getOutput().reset();
                 selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.COUNTER_BEFORE_START);			
 				selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(i);
+				selectedRoomThread.getP2().getSocketIO().getOutput().reset();
 				TimeUnit.SECONDS.sleep(1);
 			}
 			
@@ -256,7 +268,6 @@ public class ClientThread extends Thread implements Serializable{
 	public void handleGamePause () {
 		try {
 			if (selectedGamePlay == null){
-				System.out.println("this.state.getName(): PAuse: "+ this.state.getName());
 				selectedGamePlay = this.getGamePlayByPlayerName(this.state.getName());
 			}
 			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.GAME_PAUSE);
@@ -285,6 +296,12 @@ public class ClientThread extends Thread implements Serializable{
 			} catch (IOException ex) {
 				Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
 			}
+		}
+		
+		try {
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.REMOVE_ROOM);
+		} catch (IOException ex) {
+			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
 		}
 		// remove room
 		listRoom.remove(getRoomIndexByName(selectedRoomThread.getRoom().getName()));
@@ -398,6 +415,7 @@ public class ClientThread extends Thread implements Serializable{
         try {
             // Update Room To Host
             Room newRoom = (Room) socketIO.getInput().readObject();
+			newRoom = this.getWaitingRoomThreadByRoomName(newRoom.getName()).getRoom();
             socketIO.getOutput().writeObject(newRoom);
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
