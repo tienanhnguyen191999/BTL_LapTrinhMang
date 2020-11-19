@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollBar;
 import javax.swing.text.DefaultCaret;
@@ -34,8 +35,10 @@ public class PrepareGame extends javax.swing.JFrame {
     private SocketIO socketIO;
 	private boolean isHost;
 	private Thread listenThread;
+	private boolean isTerminate;
 	
 	public PrepareGame(SocketIO socketIO, Room roomInstance, boolean isHost) {
+		this.isTerminate = false;
 		this.room = roomInstance;
         this.socketIO = socketIO;
 		this.isHost = isHost;
@@ -46,7 +49,8 @@ public class PrepareGame extends javax.swing.JFrame {
         listenThread = (new Thread() {
                 public void run() {
                     try {
-                        while(true){
+                        while(!isTerminate){
+							System.out.println("ON Listeing");
                             Integer actionCode = (Integer)socketIO.getInput().readObject();
 							System.out.println(actionCode);
 							switch (actionCode){
@@ -85,6 +89,7 @@ public class PrepareGame extends javax.swing.JFrame {
 	
 	public void handleP2OutRoom () {
 		try {
+			isTerminate = true;
 			Room updatedRoom = (Room)socketIO.getInput().readObject();
 			room = updatedRoom;
 			initNewRoom();
@@ -96,10 +101,10 @@ public class PrepareGame extends javax.swing.JFrame {
 	}
 	
 	public void roomHasBeenRemove () {
-		JOptionPane.showMessageDialog(null, "Room has been removed");
+		isTerminate = true;
 		this.dispose();	
 		boolean isRegisterName = true;
-		new LAN(socketIO, this.room.getP2(), isRegisterName).setVisible(true);
+		new LAN(socketIO, this.room.getP1(), isRegisterName).setVisible(true);
 	}
 	
 	public void manualBindEvents() {
@@ -168,6 +173,10 @@ public class PrepareGame extends javax.swing.JFrame {
 	}
 	
 	public void startGame () {
+		isTerminate = true;
+		btnStart.setEnabled(false);
+		btnSendMessage.setEnabled(false);
+		btnExit.setEnabled(false);
 		for (Integer i = 5; i > 0 ; i-- ){
 			try {
 				tfChatBox.append(i.toString() + "\n");
@@ -178,6 +187,7 @@ public class PrepareGame extends javax.swing.JFrame {
 				Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
+		
 		dispose();
 		new Client(socketIO, isHost);
 	}
@@ -266,7 +276,7 @@ public class PrepareGame extends javax.swing.JFrame {
         tfChatBox = new javax.swing.JTextArea();
         jPanel4 = new javax.swing.JPanel();
         btnStart = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        btnExit = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -546,10 +556,10 @@ public class PrepareGame extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setText("Cancel");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        btnExit.setText("Cancel");
+        btnExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                btnExitActionPerformed(evt);
             }
         });
 
@@ -561,7 +571,7 @@ public class PrepareGame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnStart, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -570,7 +580,7 @@ public class PrepareGame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(btnStart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -621,13 +631,13 @@ public class PrepareGame extends javax.swing.JFrame {
 
 			socketIO.getOutput().reset();
 			socketIO.getOutput().writeObject(this.getRoom());
-			btnStart.setEnabled(false); 
+			
         } catch (IOException ex) {
             Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btnStartActionPerformed
 	
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
 		try {
 			if (isHost){
 				// Remove Room
@@ -635,14 +645,10 @@ public class PrepareGame extends javax.swing.JFrame {
 			} else {
 				socketIO.getOutput().writeObject(Consts.OUT_ROOM);
 			}
-			listenThread.stop();
 		} catch (IOException ex) {
 			Logger.getLogger(PrepareGame.class.getName()).log(Level.SEVERE, null, ex);
 		}
-		this.dispose();		
-		boolean isRegisterName = true;
-		new LAN(socketIO, this.room.getP1(), isRegisterName).setVisible(true);
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_btnExitActionPerformed
 
     private void cbP2BallColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbP2BallColorActionPerformed
 		
@@ -681,12 +687,12 @@ public class PrepareGame extends javax.swing.JFrame {
 	}
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnExit;
     private javax.swing.JButton btnSendMessage;
     private javax.swing.JButton btnStart;
     private javax.swing.JComboBox<String> cbP1BallColor;
     private javax.swing.JComboBox<String> cbP2BallColor;
     private javax.swing.JLabel imagePreview;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel12;
