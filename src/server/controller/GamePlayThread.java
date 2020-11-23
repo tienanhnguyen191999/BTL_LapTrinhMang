@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import model.ClientState;
 import consts.Consts;
 import java.awt.Color;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import map.*;
 
@@ -25,7 +26,6 @@ import map.*;
  * This class need 2 player to play 2 socket connection required
  */
 public class GamePlayThread extends Thread {
-
 	private int padding = 20;
 	private boolean isPlay, isInitNewGame;
 	private boolean isSaveGameLoad = false;
@@ -34,16 +34,22 @@ public class GamePlayThread extends Thread {
 	private ArrayList<ClientThread> arr_player;
 	private int speed, gameMode;
 	private Timer timer;
+	private Random rand;
+	private ArrayList<Integer[]> directionPairs;
 
 	GamePlayThread() {
 		arr_player = new ArrayList<ClientThread>();
+		rand = new Random();
 		gameMode = Consts.TWO_BALL;
+		
+		directionPairs = new ArrayList<Integer[]>();
+		initNewDirectionParis();
 	}
 
 	public void initNewGame() {
 		isPlay = false;
 		isInitNewGame = true;
-		int delayTime = (11 - speed) * 2 + 5; // [7,9,11,...,25]
+		int delayTime = 30;
 		// Init new Map
 		timer = new Timer(delayTime, handleRerenderEachTime());
 
@@ -70,6 +76,7 @@ public class GamePlayThread extends Thread {
 						Consts.GAMPLAY_WIDTH / 2 - Consts.BALL_RADIUS / 2,
 						Consts.GAMPLAY_HEIGHT - padding - Consts.BAR_HEIGHT - Consts.BALL_RADIUS)
 					);
+					changeBallDirection(client.getClientState().getBall());
 				} else {
 					client.getClientState().setBar(new Bar(
 						Consts.BAR_WIDTH,
@@ -84,6 +91,7 @@ public class GamePlayThread extends Thread {
 						Consts.GAMPLAY_WIDTH / 2 - Consts.BALL_RADIUS / 2,
 						padding + Consts.BAR_HEIGHT)
 					);
+					changeBallDirection(client.getClientState().getBall());
 				}
 				client.getClientState().getBall().setColor(ballColor);
 			}
@@ -194,7 +202,7 @@ public class GamePlayThread extends Thread {
 			Bar bar = player.getClientState().getBar();
 
 			// Check intersect with Edges
-			if (ball != null) {
+			if (ball != null && !isInitNewGame) {
 				switch (checkIntersectWithEdges(ball, bar, isP1)) {
 					case 1:
 						ball.setSpeedY(ball.getSpeedY() * -1);
@@ -252,24 +260,27 @@ public class GamePlayThread extends Thread {
 			if ((ball.getX() >= bar.getX() && bar.getX() <= bar.getX() + bar.getWidth())
 				&& (ball.getY() + ball.getRadius() >= bar.getY() && ball.getY() + ball.getRadius() <= bar.getY() + bar.getHeight())) {
 				ball.setY(bar.getY() - ball.getRadius());
-				return 3;
+				changeBallDirection(ball);
+				return Consts.BOTTOM;
 			}
 			// Top edge
 			if (ball.getY() <= 0) {
 				ball.setY(0);
-				return 1;
+				return Consts.TOP;
 			}
+			
 		} else {
 			// top Bar 
 			if ((ball.getX() >= bar.getX() && ball.getX() <= bar.getX() + bar.getWidth())
 				&& (ball.getY() <= bar.getY() + bar.getHeight() && ball.getY() >= bar.getY())) {
 				ball.setY(bar.getY() + bar.getHeight() + 1);
-				return 1;
+				changeBallDirection(ball);
+				return Consts.TOP;
 			}
 			// Bottom edge
 			if (ball.getY() + ball.getRadius() >= Consts.GAMPLAY_HEIGHT) {
 				ball.setY(Consts.GAMPLAY_HEIGHT - ball.getRadius());
-				return 3;
+				return Consts.BOTTOM;
 			}
 		}
 
@@ -344,15 +355,22 @@ public class GamePlayThread extends Thread {
 
 		isPlay = true;
 	}
+	
+	public void changeBallDirection (Ball curBall) {
+		int index = rand.nextInt(directionPairs.size());
+		// Set new ball direction
+		if (curBall.getSpeedX() > 0 ) curBall.setSpeedX(directionPairs.get(index)[0]);
+		else curBall.setSpeedX(directionPairs.get(index)[0] * -1);
+		if (curBall.getSpeedY() > 0 ) curBall.setSpeedY(directionPairs.get(index)[1]);
+		else curBall.setSpeedY(directionPairs.get(index)[1] * -1);
+	}
 
 	public void pauseGame() {
-
 		isPlay = false;
 
 	}
 
 	public void playGame() {
-
 		isPlay = true;
 
 	}
@@ -367,6 +385,23 @@ public class GamePlayThread extends Thread {
 
 	public void setSpeed(int speed) {
 		this.speed = speed;
+		initNewDirectionParis();
+	}
+	
+	public void initNewDirectionParis () {
+		int start = 1;
+		// Prepare
+		for (int i = start; i <= speed; i++){
+			for (int j = i; j <= speed; j++){
+				double condition_to_check = speed - Math.sqrt(Math.pow(i, 2) + Math.pow(j, 2));
+				if ( condition_to_check <= 1 && condition_to_check <= 0) {
+					directionPairs.add(new Integer[]{i, j});
+					if (i != j) {
+						directionPairs.add(new Integer[]{j, i});
+					}
+				}
+			}
+		}
 	}
 
 	public ArrayList<ClientThread> getArr_player() {

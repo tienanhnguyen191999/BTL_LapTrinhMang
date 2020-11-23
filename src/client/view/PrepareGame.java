@@ -619,6 +619,10 @@ public class PrepareGame extends javax.swing.JFrame {
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
         try {
+			if (room.getP2() == null) {
+				JOptionPane.showMessageDialog(null, "Waiting for P2 ...");
+				return;
+			}
             // Send action code
             socketIO.getOutput().writeObject(Consts.START_GAME);
 			// Update ball corlor
