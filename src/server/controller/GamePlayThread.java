@@ -357,15 +357,12 @@ public class GamePlayThread extends Thread {
 	}
 	
 	public void changeBallDirection (Ball curBall) {
-		System.out.println("SIZE: "+  directionPairs.size());
 		int index = rand.nextInt(directionPairs.size());
-		System.out.println("Ball Direction changed: " + index);
 		// Set new ball direction
 		if (curBall.getSpeedX() > 0 ) curBall.setSpeedX(directionPairs.get(index)[0]);
 		else curBall.setSpeedX(directionPairs.get(index)[0] * -1);
 		if (curBall.getSpeedY() > 0 ) curBall.setSpeedY(directionPairs.get(index)[1]);
 		else curBall.setSpeedY(directionPairs.get(index)[1] * -1);
-		System.out.println("Ball: [" + curBall.getSpeedX() + ":" + curBall.getSpeedY()+ "]" );
 	}
 
 	public void pauseGame() {
