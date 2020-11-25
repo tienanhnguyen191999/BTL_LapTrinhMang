@@ -30,6 +30,10 @@ public class Map6 extends Map implements Serializable{
 				if (i==0||i%2!=0 && j%2!=0) mapState.getBricks()[i*21 + j].setIsDisplay(false);
 			}	
 		}
+		
+		// Add Random EnhanceItem
+		// Must call this function after initial bricks[]
+		mapState.addEnhanceItemInsideBricks();
 
 		mapInfo.setName("Map6");
 		mapInfo.setType("Small");

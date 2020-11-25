@@ -6,6 +6,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  *
@@ -13,12 +14,25 @@ import java.io.Serializable;
  */
 public class ClientState implements Serializable{
     static final long serialVersionUID = 42L;
-	private Ball ball;
-	private Bar bar;
-	private int point;
-	private String name;
+	private ArrayList<EnhanceItem> enhanceItems;
 	public boolean isSocketClose;
+	private String name;
+	private Ball ball;
+	private int point;
+	private Bar bar;
 
+	public ClientState() {
+		enhanceItems = new ArrayList<EnhanceItem>();
+	}
+
+	public void setEnhanceItems(ArrayList<EnhanceItem> enhanceItems) {
+		this.enhanceItems = enhanceItems;
+	}
+
+	public ArrayList<EnhanceItem> getEnhanceItems() {
+		return enhanceItems;
+	}
+	
 	public String getName() {
 		return name;
 	}

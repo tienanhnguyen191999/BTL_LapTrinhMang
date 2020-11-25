@@ -18,13 +18,11 @@ import java.util.logging.Logger;
 import model.ClientState;
 import model.Room;
 import consts.Consts;
-import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 import model.SocketIO;
-import util.Utils;
 
 /**
  *

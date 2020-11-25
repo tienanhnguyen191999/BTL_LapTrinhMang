@@ -76,6 +76,13 @@ public class Consts {
 	// Game Mode 
 	public static final int TWO_BALL = 51;
 	public static final int ONE_BALL = 52;
+	
+	// Enhance Item
+	public static final int NORMAL = 1000;
+	public static final int ENHANCE_ITEM_BIG_BALL = 1001;
+	public static final int ENHANCE_ITEM_POWER_BALL = 1002;
+	public static final int ENHANCE_ITEM_LENTHEN_BAR= 1003;
+	public static final int ENHANCE_ITEM_MULTI_BALL = 1004;
 }
 
 

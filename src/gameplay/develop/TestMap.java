@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -41,7 +42,8 @@ public class TestMap extends JPanel {
 	private ClientState p1, p2, p3;
 	private Map map;
 	private boolean isPlay;
-
+	private ImageIcon itemBigBallIcon;
+	
 	private Timer timer;
 
 	@Override
@@ -58,6 +60,9 @@ public class TestMap extends JPanel {
 		p3 = new ClientState();
 		int padding = 20;
 
+		itemBigBallIcon = new ImageIcon(getClass().getResource("/data/image/test_25x25.png"));
+		
+		
 		// Init p1, p2
 		p1.setPoint(0);
 		// Init ball and bar
@@ -136,7 +141,7 @@ public class TestMap extends JPanel {
 
 				// Check intersect with bricks
 				boolean isTouchBrick = true;
-				switch (map.checkIntersectWithBrick(ball)) {
+				switch (map.checkIntersectWithBrick(ball, isP1)) {
 					case 1:
 						ball.setSpeedY(ball.getSpeedY() * -1);
 						break;
@@ -270,14 +275,11 @@ public class TestMap extends JPanel {
 			g.setColor(p1.getBall().getColor());
 			g.fillOval(p1.getBall().getX(), p1.getBall().getY(), p1.getBall().getRadius(), p1.getBall().getRadius());
 		}
-
-//		// Ball p3
-//		if (p3.getBall() != null) {
-//			g.setColor(p3.getBall().getColor());
-//			g.fillOval(p3.getBall().getX(), p3.getBall().getY(), p3.getBall().getRadius(), p3.getBall().getRadius());
-//		}
-
-		// Bar p1
+		
+		
+		itemBigBallIcon.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50, 80);
+		
+// Bar p1
 		g.setColor(Color.GREEN);
 		g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());
 
