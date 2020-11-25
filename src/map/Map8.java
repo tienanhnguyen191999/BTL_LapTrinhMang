@@ -61,6 +61,11 @@ public class Map8 extends Map implements Serializable {
 				}
 			}
 		}
+		
+		// Add Random EnhanceItem
+		// Must call this function after initial bricks[]
+		mapState.addEnhanceItemInsideBricks();
+		
 		mapInfo.setName("Map8");
 		mapInfo.setType("Small");
 		mapInfo.setDes("More Info Here: github.com/tienanhnguyen191999/BTL_LapTrinhMang");

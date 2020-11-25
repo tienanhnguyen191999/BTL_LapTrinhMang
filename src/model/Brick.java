@@ -5,6 +5,7 @@
  */
 package model;
 
+import consts.Consts;
 import java.io.Serializable;
 
 /**
@@ -15,6 +16,7 @@ public class Brick extends Point implements Serializable {
 	private int width;
 	private int height;
 	private boolean isDisplay;
+	private int type;
 
 	/**
 	 *
@@ -26,8 +28,22 @@ public class Brick extends Point implements Serializable {
 	public Brick(int width, int height, int x, int y) {
 		super(x, y);
 		isDisplay = true;
+		type = Consts.NORMAL;
+		
 		this.width = width;
 		this.height = height;
+	}
+
+	public boolean isIsDisplay() {
+		return isDisplay;
+	}
+
+	public int getType() {
+		return type;
+	}
+
+	public void setType(int type) {
+		this.type = type;
 	}
 	
 	/**

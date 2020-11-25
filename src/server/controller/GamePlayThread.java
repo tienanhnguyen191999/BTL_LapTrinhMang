@@ -20,6 +20,7 @@ import java.awt.Color;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import map.*;
+import model.EnhanceItem;
 
 /**
  *
@@ -27,6 +28,7 @@ import map.*;
  */
 public class GamePlayThread extends Thread {
 	private int padding = 20;
+	private int delayTime = 30;
 	private boolean isPlay, isInitNewGame;
 	private boolean isSaveGameLoad = false;
 	private Map map;
@@ -49,7 +51,6 @@ public class GamePlayThread extends Thread {
 	public void initNewGame() {
 		isPlay = false;
 		isInitNewGame = true;
-		int delayTime = 30;
 		// Init new Map
 		timer = new Timer(delayTime, handleRerenderEachTime());
 
@@ -144,8 +145,40 @@ public class GamePlayThread extends Thread {
 							player.getClientState().getBall().setX(player.getClientState().getBall().getX() + player.getClientState().getBall().getSpeedX());
 							player.getClientState().getBall().setY(player.getClientState().getBall().getY() + player.getClientState().getBall().getSpeedY());
 						}
-
 					}
+					
+					// Update EnhanceItem Falling (Map State - Render handler)
+					int item_index = 0;
+					for (int i = 0 ; i < map.getMapState().getEnhanceItems().size() ; i++){
+						EnhanceItem item = map.getMapState().getEnhanceItems().get(i);
+						if ( item.getFallingTo() == Consts.TOP ) {
+							item.setY(item.getY() - speed);
+							if (item.getY() < arr_player.get(1).getClientState().getBar().getY()) {
+								map.getMapState().getEnhanceItems().remove(item_index);
+							}
+						} else {
+							item.setY(item.getY() + speed);
+							if (item.getY() > arr_player.get(0).getClientState().getBar().getY() + arr_player.get(0).getClientState().getBar().getHeight()) {
+								map.getMapState().getEnhanceItems().remove(item_index);
+							}
+						}
+						item_index++;
+						item.setRemainingTime(item.getRemainingTime() - delayTime);
+					}
+					
+					
+					// Update EnhanceItem Time remaining (Client State - Manage to remove power-up)
+					for (ClientThread player : arr_player){
+						for (int i = 0; i < player.getClientState().getEnhanceItems().size() ; i++) {
+							EnhanceItem item = player.getClientState().getEnhanceItems().get(i);
+							item.setRemainingTime(item.getRemainingTime() - delayTime);
+							if (item.getRemainingTime() < 0) {
+								player.getClientState().getEnhanceItems().remove(i);
+							}
+						}
+					}
+					
+					// Collision
 					handleCollision();
 
 					// Send current state of object to each client
@@ -200,7 +233,13 @@ public class GamePlayThread extends Thread {
 		for (ClientThread player : arr_player) {
 			Ball ball = player.getClientState().getBall();
 			Bar bar = player.getClientState().getBar();
-
+			if (player.getClientState().getEnhanceItems().size() > 0) {
+				for (EnhanceItem item : player.getClientState().getEnhanceItems()) {
+					System.out.println(Thread.currentThread().getName() + "  ==== Enhance Item: " + item.getType()
+					+ " ==== Remaining Time: " + item.getRemainingTime()
+					);
+				}
+			}
 			// Check intersect with Edges
 			if (ball != null && !isInitNewGame) {
 				switch (checkIntersectWithEdges(ball, bar, isP1)) {
@@ -222,7 +261,7 @@ public class GamePlayThread extends Thread {
 
 				// Check intersect with bricks
 				boolean isTouchBrick = true;
-				switch (map.checkIntersectWithBrick(ball)) {
+				switch (map.checkIntersectWithBrick(ball, isP1)) {
 					case 1:
 						ball.setSpeedY(ball.getSpeedY() * -1);
 						break;
@@ -239,7 +278,9 @@ public class GamePlayThread extends Thread {
 						isTouchBrick = false;
 						break;
 				}
-
+				
+				checkIntersectWithEnhanceItem(ball, isP1);
+				
 				// This below part for 1 ball mode 
 				if (this.gameMode == Consts.ONE_BALL) {
 					// Check is touch opponent bar
@@ -254,6 +295,59 @@ public class GamePlayThread extends Thread {
 		}
 	}
 
+	private void checkIntersectWithEnhanceItem (Ball ball, boolean isP1) {	
+		for (int i= 0 ; i < map.getMapState().getEnhanceItems().size() ; i++) {
+			EnhanceItem item = map.getMapState().getEnhanceItems().get(i);
+			System.out.println("Checking....");
+			if (isP1) {
+				// P1
+				if ( item.getY() + 25 > arr_player.get(0).getClientState().getBar().getY() &&
+					 item.getY() + 25 < arr_player.get(0).getClientState().getBar().getY() + arr_player.get(0).getClientState().getBar().getHeight() &&
+					 item.getX() + 25 > arr_player.get(0).getClientState().getBar().getX() &&
+					 item.getX() < arr_player.get(0).getClientState().getBar().getX() + arr_player.get(0).getClientState().getBar().getWidth() 
+				) {
+					System.out.println("P1: MATCHED\n");
+					// P1 get power-up
+					
+					// Fix bellow this line 
+					if (arr_player.get(0).getClientState().getEnhanceItems().size() > 0 ) 
+						arr_player.get(0).getClientState().getEnhanceItems().remove(0);
+					// Fix above this line
+					
+					arr_player.get(0).getClientState().getEnhanceItems().add(item);
+					item.setRemainingTime(5010); // Set power-up last for 5s
+					map.getMapState().getEnhanceItems().remove(i);
+				}
+			} else {
+				// P2
+				System.out.println(item.getY() + 25  + ">" + arr_player.get(1).getClientState().getBar().getY());
+				System.out.println("&" + item.getY() +"<"+arr_player.get(1).getClientState().getBar().getY() + arr_player.get(1).getClientState().getBar().getHeight());
+				
+				System.out.println(item.getX() + 25 +">"+arr_player.get(1).getClientState().getBar().getX() );
+				System.out.println(item.getX() +"<"+ arr_player.get(1).getClientState().getBar().getX() + arr_player.get(1).getClientState().getBar().getWidth());
+				if (
+					item.getY() + 25 > arr_player.get(1).getClientState().getBar().getY() &&
+					item.getY() < arr_player.get(1).getClientState().getBar().getY() + arr_player.get(1).getClientState().getBar().getHeight() &&
+					item.getX() + 25 > arr_player.get(1).getClientState().getBar().getX() &&
+					item.getX() < arr_player.get(1).getClientState().getBar().getX() + arr_player.get(1).getClientState().getBar().getWidth() 
+				) {
+					System.out.println("P2: MATCHED\n");
+					// P2 get power-up
+					
+					// Fix bellow this line 
+					if (arr_player.get(1).getClientState().getEnhanceItems().size() > 0 ) 
+						arr_player.get(1).getClientState().getEnhanceItems().remove(0);
+					// Fix above this line
+					
+					arr_player.get(1).getClientState().getEnhanceItems().add(item);
+					item.setRemainingTime(5010); // Set power-up last for 5s
+					map.getMapState().getEnhanceItems().remove(i);
+				}
+			}
+			System.out.println("End checking....");
+		}	
+	}
+	
 	private int checkIntersectWithEdges(Ball ball, Bar bar, boolean isBarOnBottom) {
 		if (isBarOnBottom) {
 			// bottom Bar 

@@ -28,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import model.Brick;
 import model.ClientState;
+import model.EnhanceItem;
 import model.MapState;
 import model.SocketIO;
 
@@ -55,7 +56,8 @@ public class GamePlay extends JPanel{
     
     // In/Out
 	private SocketIO socketIO;
-	ImageIcon disconnectedGif;
+	private ImageIcon disconnectedGif;
+	private ImageIcon itemBigBallIcon;
 	
 	public GamePlay(SocketIO socketIO, boolean isHost) {
         this.socketIO = socketIO;
@@ -66,7 +68,7 @@ public class GamePlay extends JPanel{
 		inProgress = false;
 		isPlay = true;
         initNewGame();
-        initGif();
+        initMedias();
         // handle Bar move
         addKeyListener(this.handleBarMove());
         addMouseListener(this.handleClickEvent());
@@ -138,7 +140,18 @@ public class GamePlay extends JPanel{
 		// Bar p2	
 		g.setColor(Color.GREEN);
 		g.fillRect(p2.getBar().getX(), p2.getBar().getY(), p2.getBar().getWidth(), p2.getBar().getHeight());
-
+		// Draw Counter for enhance item if exsit 
+		g.setColor(Color.ORANGE);
+		System.out.println("EnhaceItem size: " + p2.getEnhanceItems().size() );
+		System.out.println("Time remain: " +  (p2.getEnhanceItems().size() > 0 ? p2.getEnhanceItems().get(0).getRemainingTime() : 0));
+		float remainingPercent = p2.getEnhanceItems().size() > 0 ? p2.getEnhanceItems().get(0).getRemainingTime() / (float)5010 : 0;
+		System.out.println("REMAINING PERCENT" + remainingPercent);
+		
+		g.fillRect(
+			p2.getBar().getX(), 
+			p2.getBar().getY() - 5, 
+			(int)(p2.getBar().getWidth() * remainingPercent),
+			5);
 		// Draw brick
 		for (int i = 0 ; i < this.mapState.getRow() ; i++) {
 			for (int j = 0; j < this.mapState.getCol(); j++){
@@ -148,6 +161,11 @@ public class GamePlay extends JPanel{
 					g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);
 				}
 			}
+		}
+		
+		// Draw Enhance Item
+		for (EnhanceItem item : mapState.getEnhanceItems()){
+			item.getIcon().paintIcon(this, g, item.getX(), item.getY());
 		}
 	}
 	
@@ -224,7 +242,7 @@ public class GamePlay extends JPanel{
 	}
 	
 	// Listen on server send data
-	public void play () {
+		public void play () {
 		while (true){
 			try {
 				Integer actionCode = (Integer) socketIO.getInput().readObject();
@@ -403,7 +421,7 @@ public class GamePlay extends JPanel{
 		};
 	}
 
-	private void initGif() {
+	private void initMedias() {
 		disconnectedGif = new ImageIcon(getClass().getResource("/data/image/loading_50x50.gif"));
 	}
 }

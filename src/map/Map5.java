@@ -99,6 +99,11 @@ public class Map5 extends Map implements Serializable {
 				mapState.getBricks()[i * 21 + j].setIsDisplay(false);
 			}
 		}
+		
+		// Add Random EnhanceItem
+		// Must call this function after initial bricks[]
+		mapState.addEnhanceItemInsideBricks();
+		
 		// Map Info
         mapInfo.setName("Map5");
 		mapInfo.setType("Small");

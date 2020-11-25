@@ -11,6 +11,8 @@ import model.Brick;
 import model.MapState;
 import consts.Consts;
 import java.io.Serializable;
+import javax.swing.ImageIcon;
+import model.EnhanceItem;
 import model.MapInfo;
 /**
  *
@@ -30,7 +32,7 @@ public abstract class Map implements Serializable{
 		return this.mapState.getBricks().length == 0;
 	}
 	
-	public int checkIntersectWithBrick (Ball ball) {
+	public int checkIntersectWithBrick (Ball ball, boolean isP1) {
 		Rectangle rectball  = new Rectangle(ball.getX(), ball.getY(), ball.getRadius(), ball.getRadius());
 		for (int i = 0 ; i < mapState.getRow() ; i++) {
 			for (int j = 0; j < mapState.getCol(); j++){
@@ -40,8 +42,41 @@ public abstract class Map implements Serializable{
 						// return the ball side that hit
 						int side = calculateBallIntersectSide(mapState.getBricks()[i*mapState.getCol()+ j], ball);
 						if (side == -1) continue;
-						// Disappear brick
+						
+						// hide brick
 						mapState.getBricks()[i*mapState.getCol()+ j].setIsDisplay(false); 
+						
+						// Append enhanceItem to Ball
+						if (mapState.getBricks()[i*mapState.getCol()+ j].getType() != Consts.NORMAL){
+							String icon = "_25x25.png";
+							int type = Consts.NORMAL;
+							switch (mapState.getBricks()[i*mapState.getCol()+ j].getType()) {
+								case Consts.ENHANCE_ITEM_BIG_BALL:
+									icon = "bigball" + icon;
+									type = Consts.ENHANCE_ITEM_BIG_BALL;
+									break;
+								case Consts.ENHANCE_ITEM_MULTI_BALL:
+									icon = "multiball" + icon;
+									type = Consts.ENHANCE_ITEM_MULTI_BALL;
+									break;
+								case Consts.ENHANCE_ITEM_POWER_BALL:
+									icon = "powerball" + icon;
+									type = Consts.ENHANCE_ITEM_POWER_BALL;
+									break;
+								case Consts.ENHANCE_ITEM_LENTHEN_BAR:
+									icon = "lengthenbar" + icon;
+									type = Consts.ENHANCE_ITEM_LENTHEN_BAR;
+									break;
+							}
+							EnhanceItem enhanceItem = new EnhanceItem(
+								isP1 ? Consts.BOTTOM : Consts.TOP, 
+								new ImageIcon(getClass().getResource("/data/image/" + icon)),
+								type, 
+								mapState.getBricks()[i*mapState.getCol()+ j].getX(),
+								mapState.getBricks()[i*mapState.getCol()+ j].getY()
+							);
+							mapState.getEnhanceItems().add(enhanceItem);
+						}
 						return side;
 					}
 				}
