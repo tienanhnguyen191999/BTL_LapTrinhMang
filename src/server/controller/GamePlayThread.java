@@ -43,7 +43,6 @@ public class GamePlayThread extends Thread {
 		arr_player = new ArrayList<ClientThread>();
 		rand = new Random();
 		gameMode = Consts.TWO_BALL;
-		
 		directionPairs = new ArrayList<Integer[]>();
 		initNewDirectionParis();
 	}
@@ -112,120 +111,179 @@ public class GamePlayThread extends Thread {
 		}
 	}
 
+	public void checkForLostConnection() {
+		int index = 0;
+		for (ClientThread player : arr_player) {
+			if (player.getClientState().isSocketClose) {
+				try {
+					ClientThread connectedPlayer = arr_player.get(index == 0 ? 1 : 0);
+					// Set "lost connection" to other player
+					connectedPlayer.getSocketIO().getOutput().reset();
+					connectedPlayer.getSocketIO().getOutput().writeObject(Consts.OTHER_PLAYER_LOST_CONNECTION);
+					connectedPlayer.getSocketIO().getOutput().writeObject(arr_player.get(0).getClientState());
+					connectedPlayer.getSocketIO().getOutput().writeObject(arr_player.get(1).getClientState());
+					connectedPlayer.getSocketIO().getOutput().writeObject(map.getMapState());
+				} catch (IOException ex) {
+
+				}
+				isPlay = false;
+				timer.stop();
+			}
+			index++;
+		}
+	}
+
+	public void updateEnhanceItemFalling() {
+		int item_index = 0;
+		for (int i = 0; i < map.getMapState().getEnhanceItems().size(); i++) {
+			EnhanceItem item = map.getMapState().getEnhanceItems().get(i);
+			if (item.getFallingTo() == Consts.TOP) {
+				item.setY(item.getY() - speed);
+				if (item.getY() < arr_player.get(1).getClientState().getBar().getY()) {
+					map.getMapState().getEnhanceItems().remove(item_index);
+				}
+			} else {
+				item.setY(item.getY() + speed);
+				if (item.getY() > arr_player.get(0).getClientState().getBar().getY() + arr_player.get(0).getClientState().getBar().getHeight()) {
+					map.getMapState().getEnhanceItems().remove(item_index);
+				}
+			}
+			item_index++;
+			item.setRemainingTime(item.getRemainingTime() - delayTime);
+		}
+	}
+
+	public void updateBallMove() {
+		for (ClientThread player : arr_player) {
+			if (player.getClientState().getBall() != null) {
+				player.getClientState().getBall().setX(player.getClientState().getBall().getX() + player.getClientState().getBall().getSpeedX());
+				player.getClientState().getBall().setY(player.getClientState().getBall().getY() + player.getClientState().getBall().getSpeedY());
+			}
+			break;
+		}
+	}
+
+	public void updateEnhanceItemTimeRemaining() {
+		for (ClientThread player : arr_player) {
+			for (int i = 0; i < player.getClientState().getEnhanceItems().size(); i++) {
+				EnhanceItem item = player.getClientState().getEnhanceItems().get(i);
+				item.setRemainingTime(item.getRemainingTime() - delayTime);
+				if (item.getRemainingTime() < 0) {
+					player.getClientState().getEnhanceItems().remove(i);
+					removeEffect(player);
+				}
+			}
+		}
+	}
+
+	public void removeEffect(ClientThread player) {
+		player.getClientState().getBar().setWidth(Consts.BAR_WIDTH);
+		player.getClientState().getBall().setRadius(Consts.BALL_RADIUS);
+		player.getClientState().getBall().setPowerBall(false);
+		player.getClientState().getBall().setX2Point(false);
+	}
+
+	public void checkGameOver() {
+		try {
+			if (arr_player.get(0).getClientState().getBall() != null && checkGameOver(arr_player.get(0).getClientState(), true)) {
+				// P1 Lose
+				arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
+				arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
+				isPlay = false;
+			} else if (arr_player.get(1).getClientState().getBall() != null && checkGameOver(arr_player.get(1).getClientState(), false)) {
+				// P2 Lose
+				arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
+				arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
+				isPlay = false;
+			}
+
+			if (map.isNoBrickLeft()) {
+				if (arr_player.get(0).getClientState().getPoint() > arr_player.get(1).getClientState().getPoint()) {
+					arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
+					arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
+				} else {
+					arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
+					arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
+				}
+				// Send WIN action code
+				isPlay = false;
+			}
+		} catch (IOException ex) {
+			Logger.getLogger(GamePlayThread.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
+
+	public void sendCurrentStateToEachPlayer() {
+		for (ClientThread player : arr_player) {
+			try {
+				player.getSocketIO().getOutput().reset();
+				player.getSocketIO().getOutput().writeObject(Consts.UPDATE_GAMEPLAY_STATE);
+				player.getSocketIO().getOutput().writeObject(arr_player.get(0).getClientState());
+				player.getSocketIO().getOutput().writeObject(arr_player.get(1).getClientState());
+				player.getSocketIO().getOutput().writeObject(map.getMapState());
+			} catch (IOException ex) {
+				player.getClientState().isSocketClose = true;
+			}
+		}
+	}
+
 	public synchronized ActionListener handleRerenderEachTime() {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
 				// Check for connection lost
-				int index = 0;
-				for (ClientThread player : arr_player) {
-					if (player.getClientState().isSocketClose) {
-						try {
-							ClientThread connectedPlayer = arr_player.get(index == 0 ? 1 : 0);
-							// Set "lost connection" to other player
-							connectedPlayer.getSocketIO().getOutput().reset();
-							connectedPlayer.getSocketIO().getOutput().writeObject(Consts.OTHER_PLAYER_LOST_CONNECTION);
-							connectedPlayer.getSocketIO().getOutput().writeObject(arr_player.get(0).getClientState());
-							connectedPlayer.getSocketIO().getOutput().writeObject(arr_player.get(1).getClientState());
-							connectedPlayer.getSocketIO().getOutput().writeObject(map.getMapState());
-						} catch (IOException ex) {
-
-						}
-						isPlay = false;
-						timer.stop();
-					}
-					index++;
-				}
+				checkForLostConnection();
 
 				if (isPlay || isInitNewGame) {
 					isInitNewGame = false;
 					// Update ball move
-					for (ClientThread player : arr_player) {
-						if (player.getClientState().getBall() != null) {
-							player.getClientState().getBall().setX(player.getClientState().getBall().getX() + player.getClientState().getBall().getSpeedX());
-							player.getClientState().getBall().setY(player.getClientState().getBall().getY() + player.getClientState().getBall().getSpeedY());
-						}
-					}
-					
+					updateBallMove();
+
 					// Update EnhanceItem Falling (Map State - Render handler)
-					int item_index = 0;
-					for (int i = 0 ; i < map.getMapState().getEnhanceItems().size() ; i++){
-						EnhanceItem item = map.getMapState().getEnhanceItems().get(i);
-						if ( item.getFallingTo() == Consts.TOP ) {
-							item.setY(item.getY() - speed);
-							if (item.getY() < arr_player.get(1).getClientState().getBar().getY()) {
-								map.getMapState().getEnhanceItems().remove(item_index);
-							}
-						} else {
-							item.setY(item.getY() + speed);
-							if (item.getY() > arr_player.get(0).getClientState().getBar().getY() + arr_player.get(0).getClientState().getBar().getHeight()) {
-								map.getMapState().getEnhanceItems().remove(item_index);
-							}
-						}
-						item_index++;
-						item.setRemainingTime(item.getRemainingTime() - delayTime);
-					}
-					
-					
+					updateEnhanceItemFalling();
+
 					// Update EnhanceItem Time remaining (Client State - Manage to remove power-up)
-					for (ClientThread player : arr_player){
-						for (int i = 0; i < player.getClientState().getEnhanceItems().size() ; i++) {
-							EnhanceItem item = player.getClientState().getEnhanceItems().get(i);
-							item.setRemainingTime(item.getRemainingTime() - delayTime);
-							if (item.getRemainingTime() < 0) {
-								player.getClientState().getEnhanceItems().remove(i);
-							}
-						}
-					}
-					
+					updateEnhanceItemTimeRemaining();
+
+					// At this point. EnhanceItem is updated to each Client
+					// => Apllied Effect to ball here 
+					updateEnhanceItemEffectToPlayer();
+
 					// Collision
 					handleCollision();
 
-					// Send current state of object to each client
-					for (ClientThread player : arr_player) {
-						try {
-							player.getSocketIO().getOutput().reset();
-							player.getSocketIO().getOutput().writeObject(Consts.UPDATE_GAMEPLAY_STATE);
-							player.getSocketIO().getOutput().writeObject(arr_player.get(0).getClientState());
-							player.getSocketIO().getOutput().writeObject(arr_player.get(1).getClientState());
-							player.getSocketIO().getOutput().writeObject(map.getMapState());
-						} catch (IOException ex) {
-							player.getClientState().isSocketClose = true;
-						}
-					}
-
 					// Check game over
-					try {
-						if (arr_player.get(0).getClientState().getBall() != null && checkGameOver(arr_player.get(0).getClientState(), true)) {
-							// P1 Lose
-							arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
-							arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
-							isPlay = false;
-						} else if (arr_player.get(1).getClientState().getBall() != null && checkGameOver(arr_player.get(1).getClientState(), false)) {
-							// P2 Lose
-							arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
-							arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
-							isPlay = false;
-						}
+					checkGameOver();
 
-						if (map.isNoBrickLeft()) {
-							if (arr_player.get(0).getClientState().getPoint() > arr_player.get(1).getClientState().getPoint()) {
-								arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
-								arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
-							} else {
-								arr_player.get(0).getSocketIO().getOutput().writeObject(Consts.GAME_LOSE);
-								arr_player.get(1).getSocketIO().getOutput().writeObject(Consts.GAME_WIN);
-							}
-							// Send WIN action code
-							isPlay = false;
-						}
-					} catch (IOException ex) {
-						Logger.getLogger(GamePlayThread.class.getName()).log(Level.SEVERE, null, ex);
-					}
+					// Send current state of object to each client
+					sendCurrentStateToEachPlayer();
 				}
 
 			}
 		};
+	}
+
+	public void updateEnhanceItemEffectToPlayer() {
+		for (ClientThread player : arr_player) {
+
+			for (int i = 0; i < player.getClientState().getEnhanceItems().size(); i++) {
+				EnhanceItem item = player.getClientState().getEnhanceItems().get(i);
+				switch (item.getType()) {
+					case Consts.ENHANCE_ITEM_BIG_BALL:
+						player.getClientState().getBall().setRadius(Consts.BALL_RADIUS * 2);
+						break;
+					case Consts.ENHANCE_ITEM_LENTHEN_BAR:
+						player.getClientState().getBar().setWidth(Consts.BAR_WIDTH * 2);
+						break;
+					case Consts.ENHANCE_ITEM_POWER_BALL:
+						player.getClientState().getBall().setPowerBall(true);
+						break;
+					case Consts.ENHANCE_ITEM_X2_POINT:
+						player.getClientState().getBall().setX2Point(true);
+						break;
+				}
+			}
+		}
 	}
 
 	private void handleCollision() {
@@ -233,13 +291,6 @@ public class GamePlayThread extends Thread {
 		for (ClientThread player : arr_player) {
 			Ball ball = player.getClientState().getBall();
 			Bar bar = player.getClientState().getBar();
-			if (player.getClientState().getEnhanceItems().size() > 0) {
-				for (EnhanceItem item : player.getClientState().getEnhanceItems()) {
-					System.out.println(Thread.currentThread().getName() + "  ==== Enhance Item: " + item.getType()
-					+ " ==== Remaining Time: " + item.getRemainingTime()
-					);
-				}
-			}
 			// Check intersect with Edges
 			if (ball != null && !isInitNewGame) {
 				switch (checkIntersectWithEdges(ball, bar, isP1)) {
@@ -261,26 +312,33 @@ public class GamePlayThread extends Thread {
 
 				// Check intersect with bricks
 				boolean isTouchBrick = true;
-				switch (map.checkIntersectWithBrick(ball, isP1)) {
-					case 1:
-						ball.setSpeedY(ball.getSpeedY() * -1);
-						break;
-					case 2:
-						ball.setSpeedX(ball.getSpeedX() * -1);
-						break;
-					case 3:
-						ball.setSpeedY(ball.getSpeedY() * -1);
-						break;
-					case 4:
-						ball.setSpeedX(ball.getSpeedX() * -1);
-						break;
-					default:
+				int intersectSide = map.checkIntersectWithBrick(ball, isP1);
+				if (!ball.isPowerBall()) {
+					switch (intersectSide) {
+						case 1:
+							ball.setSpeedY(ball.getSpeedY() * -1);
+							break;
+						case 2:
+							ball.setSpeedX(ball.getSpeedX() * -1);
+							break;
+						case 3:
+							ball.setSpeedY(ball.getSpeedY() * -1);
+							break;
+						case 4:
+							ball.setSpeedX(ball.getSpeedX() * -1);
+							break;
+						default:
+							isTouchBrick = false;
+							break;
+					}
+				} else {
+					if (intersectSide == -1){
 						isTouchBrick = false;
-						break;
+					}
 				}
-				
+
 				checkIntersectWithEnhanceItem(ball, isP1);
-				
+
 				// This below part for 1 ball mode 
 				if (this.gameMode == Consts.ONE_BALL) {
 					// Check is touch opponent bar
@@ -289,65 +347,58 @@ public class GamePlayThread extends Thread {
 
 				if (isTouchBrick) {
 					player.getClientState().setPoint(player.getClientState().getPoint() + 1);
+					if (ball.isX2Point()) {
+						player.getClientState().setPoint(player.getClientState().getPoint() + 1);
+					}
 				}
 			}
 			isP1 = !isP1;
 		}
 	}
 
-	private void checkIntersectWithEnhanceItem (Ball ball, boolean isP1) {	
-		for (int i= 0 ; i < map.getMapState().getEnhanceItems().size() ; i++) {
+	private void checkIntersectWithEnhanceItem(Ball ball, boolean isP1) {
+		for (int i = 0; i < map.getMapState().getEnhanceItems().size(); i++) {
 			EnhanceItem item = map.getMapState().getEnhanceItems().get(i);
-			System.out.println("Checking....");
 			if (isP1) {
 				// P1
-				if ( item.getY() + 25 > arr_player.get(0).getClientState().getBar().getY() &&
-					 item.getY() + 25 < arr_player.get(0).getClientState().getBar().getY() + arr_player.get(0).getClientState().getBar().getHeight() &&
-					 item.getX() + 25 > arr_player.get(0).getClientState().getBar().getX() &&
-					 item.getX() < arr_player.get(0).getClientState().getBar().getX() + arr_player.get(0).getClientState().getBar().getWidth() 
-				) {
-					System.out.println("P1: MATCHED\n");
+				if (item.getY() + 25 > arr_player.get(0).getClientState().getBar().getY()
+					&& item.getY() + 25 < arr_player.get(0).getClientState().getBar().getY() + arr_player.get(0).getClientState().getBar().getHeight()
+					&& item.getX() + 25 > arr_player.get(0).getClientState().getBar().getX()
+					&& item.getX() < arr_player.get(0).getClientState().getBar().getX() + arr_player.get(0).getClientState().getBar().getWidth()) {
 					// P1 get power-up
-					
+
 					// Fix bellow this line 
-					if (arr_player.get(0).getClientState().getEnhanceItems().size() > 0 ) 
+					if (arr_player.get(0).getClientState().getEnhanceItems().size() > 0) {
 						arr_player.get(0).getClientState().getEnhanceItems().remove(0);
+					}
 					// Fix above this line
-					
+
 					arr_player.get(0).getClientState().getEnhanceItems().add(item);
 					item.setRemainingTime(5010); // Set power-up last for 5s
 					map.getMapState().getEnhanceItems().remove(i);
 				}
 			} else {
 				// P2
-				System.out.println(item.getY() + 25  + ">" + arr_player.get(1).getClientState().getBar().getY());
-				System.out.println("&" + item.getY() +"<"+arr_player.get(1).getClientState().getBar().getY() + arr_player.get(1).getClientState().getBar().getHeight());
-				
-				System.out.println(item.getX() + 25 +">"+arr_player.get(1).getClientState().getBar().getX() );
-				System.out.println(item.getX() +"<"+ arr_player.get(1).getClientState().getBar().getX() + arr_player.get(1).getClientState().getBar().getWidth());
-				if (
-					item.getY() + 25 > arr_player.get(1).getClientState().getBar().getY() &&
-					item.getY() < arr_player.get(1).getClientState().getBar().getY() + arr_player.get(1).getClientState().getBar().getHeight() &&
-					item.getX() + 25 > arr_player.get(1).getClientState().getBar().getX() &&
-					item.getX() < arr_player.get(1).getClientState().getBar().getX() + arr_player.get(1).getClientState().getBar().getWidth() 
-				) {
-					System.out.println("P2: MATCHED\n");
+				if (item.getY() + 25 > arr_player.get(1).getClientState().getBar().getY()
+					&& item.getY() < arr_player.get(1).getClientState().getBar().getY() + arr_player.get(1).getClientState().getBar().getHeight()
+					&& item.getX() + 25 > arr_player.get(1).getClientState().getBar().getX()
+					&& item.getX() < arr_player.get(1).getClientState().getBar().getX() + arr_player.get(1).getClientState().getBar().getWidth()) {
 					// P2 get power-up
-					
+
 					// Fix bellow this line 
-					if (arr_player.get(1).getClientState().getEnhanceItems().size() > 0 ) 
+					if (arr_player.get(1).getClientState().getEnhanceItems().size() > 0) {
 						arr_player.get(1).getClientState().getEnhanceItems().remove(0);
+					}
 					// Fix above this line
-					
+
 					arr_player.get(1).getClientState().getEnhanceItems().add(item);
 					item.setRemainingTime(5010); // Set power-up last for 5s
 					map.getMapState().getEnhanceItems().remove(i);
 				}
 			}
-			System.out.println("End checking....");
-		}	
+		}
 	}
-	
+
 	private int checkIntersectWithEdges(Ball ball, Bar bar, boolean isBarOnBottom) {
 		if (isBarOnBottom) {
 			// bottom Bar 
@@ -362,7 +413,7 @@ public class GamePlayThread extends Thread {
 				ball.setY(0);
 				return Consts.TOP;
 			}
-			
+
 		} else {
 			// top Bar 
 			if ((ball.getX() >= bar.getX() && ball.getX() <= bar.getX() + bar.getWidth())
@@ -449,14 +500,20 @@ public class GamePlayThread extends Thread {
 
 		isPlay = true;
 	}
-	
-	public void changeBallDirection (Ball curBall) {
+
+	public void changeBallDirection(Ball curBall) {
 		int index = rand.nextInt(directionPairs.size());
 		// Set new ball direction
-		if (curBall.getSpeedX() > 0 ) curBall.setSpeedX(directionPairs.get(index)[0]);
-		else curBall.setSpeedX(directionPairs.get(index)[0] * -1);
-		if (curBall.getSpeedY() > 0 ) curBall.setSpeedY(directionPairs.get(index)[1]);
-		else curBall.setSpeedY(directionPairs.get(index)[1] * -1);
+		if (curBall.getSpeedX() > 0) {
+			curBall.setSpeedX(directionPairs.get(index)[0]);
+		} else {
+			curBall.setSpeedX(directionPairs.get(index)[0] * -1);
+		}
+		if (curBall.getSpeedY() > 0) {
+			curBall.setSpeedY(directionPairs.get(index)[1]);
+		} else {
+			curBall.setSpeedY(directionPairs.get(index)[1] * -1);
+		}
 	}
 
 	public void pauseGame() {
@@ -481,14 +538,14 @@ public class GamePlayThread extends Thread {
 		this.speed = speed;
 		initNewDirectionParis();
 	}
-	
-	public void initNewDirectionParis () {
+
+	public void initNewDirectionParis() {
 		int start = 1;
 		// Prepare
 		for (int i = start; i <= speed; i++){
 			for (int j = i; j <= speed; j++){
 				double condition_to_check = speed - Math.sqrt(Math.pow(i, 2) + Math.pow(j, 2));
-				if ( condition_to_check <= 1 && condition_to_check <= 0) {
+				if (condition_to_check <= 1 && condition_to_check <= 0) {
 					directionPairs.add(new Integer[]{i, j});
 					if (i != j) {
 						directionPairs.add(new Integer[]{j, i});

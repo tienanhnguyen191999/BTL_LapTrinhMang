@@ -82,7 +82,7 @@ public class Consts {
 	public static final int ENHANCE_ITEM_BIG_BALL = 1001;
 	public static final int ENHANCE_ITEM_POWER_BALL = 1002;
 	public static final int ENHANCE_ITEM_LENTHEN_BAR= 1003;
-	public static final int ENHANCE_ITEM_MULTI_BALL = 1004;
+	public static final int ENHANCE_ITEM_X2_POINT = 1004;
 }
 
 

@@ -16,12 +16,7 @@ public class Point implements Serializable{
 	/**
 	 *
 	 */
-	protected int x,
-
-	/**
-	 *
-	 */
-	y;
+	protected int x, y;
 
 	/**
 	 *
