@@ -34,7 +34,6 @@ public class Map4 extends Map implements Serializable{
 		// Add Random EnhanceItem
 		// Must call this function after initial bricks[]
 		mapState.addEnhanceItemInsideBricks();
-		System.out.println(this.getClass() + "\n" + mapState );
 		
 		// Map Info
         mapInfo.setName("Map4");

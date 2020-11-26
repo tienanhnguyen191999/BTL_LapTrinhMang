@@ -16,6 +16,9 @@ public class Ball extends Point implements Serializable{
 	private int radius;
 	private int speedX, speedY;
 	private Color color;
+	
+	// Enhance effect
+	private boolean powerBall, x2Point;
 
 	/**
 	 *
@@ -30,8 +33,25 @@ public class Ball extends Point implements Serializable{
 		this.radius = radius;
 		this.speedX = speedX;
 		this.speedY = speedY;
+		this.powerBall = false;
+		this.x2Point = false;
 	}
 
+	public boolean isPowerBall() {
+		return powerBall;
+	}
+
+	public void setPowerBall(boolean isPowerBall) {
+		this.powerBall = isPowerBall;
+	}
+
+	public boolean isX2Point() {
+		return x2Point;
+	}
+
+	public void setX2Point(boolean x2Point) {
+		this.x2Point = x2Point;
+	}
 	public Ball() {
 	}
 

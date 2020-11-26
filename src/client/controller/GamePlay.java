@@ -121,19 +121,40 @@ public class GamePlay extends JPanel{
 	public void drawBasicState (Graphics g) {
 		// Ball p1
 		if (p1.getBall() != null){
-			g.setColor(p1.getBall().getColor());
+			if (p1.getBall().isPowerBall()) g.setColor(Color.PINK);
+			else g.setColor(p1.getBall().getColor());
 			g.fillOval(p1.getBall().getX(), p1.getBall().getY(), p1.getBall().getRadius(), p1.getBall().getRadius());
 		}
 		
 		// Bar p1
 		if (gameMode == Consts.ONE_BALL) g.setColor(Color.BLUE);
 		else g.setColor(Color.GREEN);
-		g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());
+		g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());	
+		// Draw Counter for enhance item if exsit
+		float remainingPercentP1 = p1.getEnhanceItems().size() > 0 ? p1.getEnhanceItems().get(0).getRemainingTime() / (float)5010 : 0;
+		g.setColor(Color.ORANGE);
+		g.fillRect(
+			p1.getBar().getX() + 1, 
+			p1.getBar().getY() + p1.getBar().getHeight(), 
+			(int)(p1.getBar().getWidth() * remainingPercentP1),
+			5);
+		
+		// Draw brick
+		for (int i = 0 ; i < this.mapState.getRow() ; i++) {
+			for (int j = 0; j < this.mapState.getCol(); j++){
+				Brick curBrick = this.mapState.getBricks()[i*this.mapState.getCol()+ j];
+				if ( curBrick.getIsDisplay()){
+					g.setColor(Color.YELLOW);
+					g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);
+				}
+			}
+		}
 		
 		
 		// Ball p2
 		if (p2.getBall() != null){
-			g.setColor(p2.getBall().getColor());
+			if (p2.getBall().isPowerBall()) g.setColor(Color.PINK);
+			else g.setColor(p2.getBall().getColor());
 			g.fillOval(p2.getBall().getX(), p2.getBall().getY(), p2.getBall().getRadius(), p2.getBall().getRadius());
 		}
 	
@@ -142,11 +163,7 @@ public class GamePlay extends JPanel{
 		g.fillRect(p2.getBar().getX(), p2.getBar().getY(), p2.getBar().getWidth(), p2.getBar().getHeight());
 		// Draw Counter for enhance item if exsit 
 		g.setColor(Color.ORANGE);
-		System.out.println("EnhaceItem size: " + p2.getEnhanceItems().size() );
-		System.out.println("Time remain: " +  (p2.getEnhanceItems().size() > 0 ? p2.getEnhanceItems().get(0).getRemainingTime() : 0));
 		float remainingPercent = p2.getEnhanceItems().size() > 0 ? p2.getEnhanceItems().get(0).getRemainingTime() / (float)5010 : 0;
-		System.out.println("REMAINING PERCENT" + remainingPercent);
-		
 		g.fillRect(
 			p2.getBar().getX(), 
 			p2.getBar().getY() - 5, 

@@ -55,9 +55,9 @@ public abstract class Map implements Serializable{
 									icon = "bigball" + icon;
 									type = Consts.ENHANCE_ITEM_BIG_BALL;
 									break;
-								case Consts.ENHANCE_ITEM_MULTI_BALL:
-									icon = "multiball" + icon;
-									type = Consts.ENHANCE_ITEM_MULTI_BALL;
+								case Consts.ENHANCE_ITEM_X2_POINT:
+									icon = "x2" + icon;
+									type = Consts.ENHANCE_ITEM_X2_POINT;
 									break;
 								case Consts.ENHANCE_ITEM_POWER_BALL:
 									icon = "powerball" + icon;
