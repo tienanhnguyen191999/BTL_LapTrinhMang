@@ -7,6 +7,7 @@ package client.view;
 
 import client.view.component.CustomInputDialog;
 import client.view.component.CustomMessageDialog;
+import client.view.component.CustomMessageWithoutLogoDialog;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -53,11 +54,11 @@ public class Game extends javax.swing.JFrame {
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
+        jButton6 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(9, 17, 28));
-        setPreferredSize(new java.awt.Dimension(1200, 770));
 
         jPanel3.setBackground(new java.awt.Color(83, 83, 83));
         jPanel3.setMaximumSize(new java.awt.Dimension(1200, 800));
@@ -201,6 +202,20 @@ public class Game extends javax.swing.JFrame {
         jPanel3.add(jPanel1);
         jPanel1.setBounds(210, 200, 836, 400);
 
+        jButton6.setBackground(new java.awt.Color(1, 1, 1));
+        jButton6.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jButton6.setForeground(new java.awt.Color(254, 254, 254));
+        jButton6.setText("IP");
+        jButton6.setBorder(javax.swing.BorderFactory.createMatteBorder(5, 5, 5, 5, new java.awt.Color(254, 254, 254)));
+        jButton6.setContentAreaFilled(false);
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
+        jPanel3.add(jButton6);
+        jButton6.setBounds(1132, 20, 50, 40);
+
         jLabel1.setFont(new java.awt.Font("LifeCraft", 3, 100)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(254, 226, 226));
         jLabel1.setText("BricK Breaker ");
@@ -209,15 +224,16 @@ public class Game extends javax.swing.JFrame {
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/data/image/bacground_1200x800.jpeg"))); // NOI18N
         jLabel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jLabel2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jLabel2.setOpaque(true);
         jPanel3.add(jLabel2);
-        jLabel2.setBounds(0, 0, 1320, 770);
+        jLabel2.setBounds(0, 0, 1202, 770);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 1212, Short.MAX_VALUE)
+            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -274,7 +290,7 @@ public class Game extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
+		new HowToPlay().setVisible(true);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseEntered
@@ -319,6 +335,10 @@ public class Game extends javax.swing.JFrame {
     private void jButton5MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton5MouseExited
         removeHoverEffect(jButton5);
     }//GEN-LAST:event_jButton5MouseExited
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+		new CustomMessageWithoutLogoDialog(null, false).showMessage(util.Utils.getLocalIP());
+    }//GEN-LAST:event_jButton6ActionPerformed
 
 	public void addHoverEffect (JButton jButton) {
 		jButton.setForeground(new java.awt.Color(0, 0, 0));
@@ -383,6 +403,7 @@ public class Game extends javax.swing.JFrame {
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
+    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;

@@ -61,11 +61,11 @@ public class CustomMessageDialog extends javax.swing.JFrame {
             }
         });
         jPanel1.add(jButton1);
-        jButton1.setBounds(170, 170, 80, 34);
+        jButton1.setBounds(170, 130, 80, 34);
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/data/image/warning.png"))); // NOI18N
         jPanel1.add(jLabel2);
-        jLabel2.setBounds(10, 20, 100, 90);
+        jLabel2.setBounds(20, 30, 100, 90);
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
@@ -84,14 +84,14 @@ public class CustomMessageDialog extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTextArea1);
 
         jPanel1.add(jScrollPane1);
-        jScrollPane1.setBounds(130, 50, 270, 100);
+        jScrollPane1.setBounds(130, 30, 270, 90);
 
         jLabel1.setForeground(new java.awt.Color(254, 254, 254));
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/data/image/bacground_1200x800.jpeg"))); // NOI18N
         jLabel1.setText("asddasdas");
         jLabel1.setBorder(javax.swing.BorderFactory.createMatteBorder(10, 10, 10, 10, new java.awt.Color(236, 202, 47)));
         jPanel1.add(jLabel1);
-        jLabel1.setBounds(0, 0, 420, 220);
+        jLabel1.setBounds(0, 0, 420, 180);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -101,7 +101,7 @@ public class CustomMessageDialog extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 220, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
