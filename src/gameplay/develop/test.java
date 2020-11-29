@@ -13,21 +13,26 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import jdk.internal.util.xml.impl.Pair;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author tienanh
  */
 public class test {
+
 	public static void main(String[] args) {
-		JPanel jpanel = new JPanel();
-		jpanel.add(new JButton("Click me"));
-		JOptionPane.showMessageDialog(null, jpanel);
+		
 	}
-	
+
 	public static void display(HashSet<Integer> hashset) {
-		for (int i = 0 ; i < hashset.size(); i++){
+		for (int i = 0; i < hashset.size(); i++) {
 			System.out.println(hashset.toArray()[i]);
 		}
-	}	
+	}
 }

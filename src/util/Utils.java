@@ -6,6 +6,7 @@
 package util;
 
 import client.view.Game;
+import gameplay.develop.test;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -15,6 +16,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,5 +63,18 @@ public class Utils {
 		} catch (Exception ex) {
 
 		}
+	}
+	
+	public static String getLocalIP () {
+		try (final DatagramSocket socket = new DatagramSocket()) {
+			socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+			String ip = socket.getLocalAddress().getHostAddress();
+			return ip;
+		} catch (SocketException ex) {
+			Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (UnknownHostException ex) {
+			Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		return "";
 	}
 }
