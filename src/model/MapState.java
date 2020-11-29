@@ -43,7 +43,7 @@ public class MapState implements Serializable{
 		Random rand = new Random();
 		
 		// 5%  of total display bricks
-		int totalEnhanceItems = (int)(indexDisplayBricks.size() * 1);
+		int totalEnhanceItems = (int)(indexDisplayBricks.size() * 0.10);
 		for (int i = 0 ; i < totalEnhanceItems; i++){
 			// Random 4 power-up
 			int enhanceItemType = rand.nextInt(4) + 1001;

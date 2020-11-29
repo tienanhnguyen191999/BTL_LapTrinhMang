@@ -29,9 +29,9 @@ public class Client {
 		JFrame mainFrame = new JFrame("Brick Breaker");
 		mainFrame.getContentPane().setPreferredSize(new Dimension(Consts.SCREEN_WIDTH, Consts.SCREEN_HEIGHT));
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setLocationRelativeTo(null);
 		mainFrame.setVisible(true);
 		mainFrame.pack();
+		mainFrame.setLocationRelativeTo(null);
         
         // GamePlay
 		GamePlay gamePlay = new GamePlay(socketIO, isHost);

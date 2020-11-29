@@ -16,7 +16,7 @@ public class Brick extends Point implements Serializable {
 	private int width;
 	private int height;
 	private boolean isDisplay;
-	private int type;
+	private int type; // [Normal, EnhanceItemBigBall, EnhanceItemPowerBall, ...]
 
 	/**
 	 *
