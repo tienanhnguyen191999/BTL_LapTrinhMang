@@ -255,7 +255,7 @@ public class ClientThread extends Thread implements Serializable{
 			
 			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.GAME_UNPAUSE);
 			selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.GAME_UNPAUSE);
-			selectedGamePlay.playGame();
+			selectedGamePlay.setIsPlay(true);
 		} catch (IOException ex) {
 			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
 		} catch (InterruptedException ex) {
@@ -270,7 +270,7 @@ public class ClientThread extends Thread implements Serializable{
 			}
 			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.GAME_PAUSE);
 			selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.GAME_PAUSE);
-			selectedGamePlay.pauseGame();
+			selectedGamePlay.setIsPlay(false);
 		} catch (IOException ex) {
 			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -278,10 +278,10 @@ public class ClientThread extends Thread implements Serializable{
 	
 	public void handleOutRoom () {
 		try {
+			selectedRoomThread.getP2().getSocketIO().getOutput().writeObject(Consts.OUT_ROOM);		
 			selectedRoomThread.setP2(null);
-			selectedRoomThread.getP1().getSocketIO().getOutput().reset();
-			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.OUT_ROOM);
-			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(selectedRoom);
+			selectedRoomThread.getRoom().setP2(null);
+			selectedRoomThread.getP1().getSocketIO().getOutput().writeObject(Consts.UPDATE_WAITING_ROOM);
 		} catch (IOException ex) {
 			Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -414,6 +414,7 @@ public class ClientThread extends Thread implements Serializable{
             // Update Room To Host
             Room newRoom = (Room) socketIO.getInput().readObject();
 			newRoom = this.getWaitingRoomThreadByRoomName(newRoom.getName()).getRoom();
+			socketIO.getOutput().reset();
             socketIO.getOutput().writeObject(newRoom);
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -424,7 +425,8 @@ public class ClientThread extends Thread implements Serializable{
     
     private void getListRoom() {
         try {
-            socketIO.getOutput().writeObject(listRoom);
+			socketIO.getOutput().reset();
+			socketIO.getOutput().writeObject(listRoom);
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }

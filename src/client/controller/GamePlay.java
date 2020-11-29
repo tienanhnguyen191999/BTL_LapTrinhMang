@@ -5,18 +5,23 @@
  */
 package client.controller;
 
+import client.view.Game;
+import client.view.LAN;
 import consts.Consts;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +31,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import model.Brick;
 import model.ClientState;
 import model.EnhanceItem;
@@ -57,7 +63,6 @@ public class GamePlay extends JPanel{
     // In/Out
 	private SocketIO socketIO;
 	private ImageIcon disconnectedGif;
-	private ImageIcon itemBigBallIcon;
 	
 	public GamePlay(SocketIO socketIO, boolean isHost) {
         this.socketIO = socketIO;
@@ -100,20 +105,20 @@ public class GamePlay extends JPanel{
 	public void drawGamePlayState (Graphics g) {
 		if (isGameLose){
 			g.setColor(Color.RED);
-			g.setFont(new Font("serif", Font.PLAIN, 50));
+			g.setFont(new Font("LifeCraft", Font.PLAIN, 50));
 			g.drawString("GAME OVER",Consts.GAMPLAY_WIDTH / 2 - 50*3, Consts.GAMPLAY_HEIGHT / 2);
 		}
 		
 		if (isGameWin){
 			g.setColor(Color.GREEN);
-			g.setFont(new Font("serif", Font.PLAIN, 50));
+			g.setFont(new Font("LifeCraft", Font.PLAIN, 50));
 			g.drawString("GAME WIN",Consts.GAMPLAY_WIDTH / 2 - 50*3, Consts.GAMPLAY_HEIGHT / 2);
 		}
 		
 		// Counter on first Init
 		if (isShowCounter){
 			g.setColor(Color.RED);
-			g.setFont(new Font("serif", Font.PLAIN, 200));
+			g.setFont(new Font("LifeCraft", Font.PLAIN, 200));
 			g.drawString(counter.toString(), Consts.GAMPLAY_WIDTH / 2 - 100, Consts.GAMPLAY_HEIGHT / 2);
 		}
 	}
@@ -131,7 +136,7 @@ public class GamePlay extends JPanel{
 		else g.setColor(Color.GREEN);
 		g.fillRect(p1.getBar().getX(), p1.getBar().getY(), p1.getBar().getWidth(), p1.getBar().getHeight());	
 		// Draw Counter for enhance item if exsit
-		float remainingPercentP1 = p1.getEnhanceItems().size() > 0 ? p1.getEnhanceItems().get(0).getRemainingTime() / (float)5010 : 0;
+		float remainingPercentP1 = p1.getEnhanceItems() != null && p1.getEnhanceItems().size() > 0 ? p1.getEnhanceItems().get(0).getRemainingTime() / (float)Consts.ENHANCE_ITEM_LAST : 0;
 		g.setColor(Color.ORANGE);
 		g.fillRect(
 			p1.getBar().getX() + 1, 
@@ -144,7 +149,8 @@ public class GamePlay extends JPanel{
 			for (int j = 0; j < this.mapState.getCol(); j++){
 				Brick curBrick = this.mapState.getBricks()[i*this.mapState.getCol()+ j];
 				if ( curBrick.getIsDisplay()){
-					g.setColor(Color.YELLOW);
+					if (curBrick.getType() != Consts.NORMAL) g.setColor(Color.RED); // EnhanceItem
+					else g.setColor(Color.YELLOW);
 					g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);
 				}
 			}
@@ -163,7 +169,7 @@ public class GamePlay extends JPanel{
 		g.fillRect(p2.getBar().getX(), p2.getBar().getY(), p2.getBar().getWidth(), p2.getBar().getHeight());
 		// Draw Counter for enhance item if exsit 
 		g.setColor(Color.ORANGE);
-		float remainingPercent = p2.getEnhanceItems().size() > 0 ? p2.getEnhanceItems().get(0).getRemainingTime() / (float)5010 : 0;
+		float remainingPercent = p2.getEnhanceItems() != null && p2.getEnhanceItems().size() > 0 ? p2.getEnhanceItems().get(0).getRemainingTime() / (float)Consts.ENHANCE_ITEM_LAST : 0;
 		g.fillRect(
 			p2.getBar().getX(), 
 			p2.getBar().getY() - 5, 
@@ -174,7 +180,8 @@ public class GamePlay extends JPanel{
 			for (int j = 0; j < this.mapState.getCol(); j++){
 				Brick curBrick = this.mapState.getBricks()[i*this.mapState.getCol()+ j];
 				if ( curBrick.getIsDisplay()){
-					g.setColor(Color.YELLOW);
+					if ( curBrick.getType() != Consts.NORMAL) g.setColor(Color.RED);
+					else g.setColor(Color.YELLOW);
 					g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);
 				}
 			}
@@ -194,7 +201,7 @@ public class GamePlay extends JPanel{
 		// Menu
 		// Point p2
 		g.setColor(Color.RED);
-		g.setFont(new Font("serif", Font.PLAIN, 20));
+		g.setFont(new Font("LifeCraft", Font.PLAIN, 20));
 		g.drawString(p2.getName() + ": " + p2.getPoint(), Consts.GAMPLAY_WIDTH + 50, 50);
 		
 		// determine "your side"
@@ -216,7 +223,7 @@ public class GamePlay extends JPanel{
 
 		// Point p1
 		g.setColor(Color.RED);
-		g.setFont(new Font("serif", Font.PLAIN, 20));
+		g.setFont(new Font("LifeCraft", Font.PLAIN, 20));
 		g.drawString(p1.getName() + ": " + p1.getPoint(), Consts.GAMPLAY_WIDTH + 50, Consts.GAMPLAY_HEIGHT / 2 + 50);
 		
 		// determine "your side"
@@ -349,11 +356,11 @@ public class GamePlay extends JPanel{
 		}
 	}
 	
-	public synchronized void updateGamePlayState () {
+	public void updateGamePlayState () {
 		try {
 			p1 = (ClientState)socketIO.getInput().readObject();
 			p2 = (ClientState)socketIO.getInput().readObject();
-			this.mapState = (MapState)socketIO.getInput().readObject();
+			mapState = (MapState)socketIO.getInput().readObject();
 			isPlay = true;
 			customRepaint();
 		} catch (IOException ex) {
@@ -428,7 +435,9 @@ public class GamePlay extends JPanel{
 							me.getY() >= Consts.GAMPLAY_HEIGHT - 70 && me.getY() <= Consts.GAMPLAY_HEIGHT - 70 + 50) {
 							JFrame parent = (JFrame)self.getTopLevelAncestor();
 							parent.dispose();
-							System.exit(0);
+							socketIO.getSocket().close();
+							socketIO = null;
+							new Game().setVisible(true);
 						}
 					}
 				} catch (IOException ex) {

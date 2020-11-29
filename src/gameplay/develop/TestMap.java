@@ -60,7 +60,7 @@ public class TestMap extends JPanel {
 		p3 = new ClientState();
 		int padding = 20;
 
-		itemBigBallIcon = new ImageIcon(getClass().getResource("/data/image/test_25x25.png"));
+//		itemBigBallIcon = new ImageIcon(getClass().getResource("/data/image/test_25x25.png"));
 		
 		
 		// Init p1, p2
@@ -277,7 +277,7 @@ public class TestMap extends JPanel {
 		}
 		
 		
-		itemBigBallIcon.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50, 80);
+//		itemBigBallIcon.paintIcon(this, g, Consts.GAMPLAY_WIDTH + 50, 80);
 		
 // Bar p1
 		g.setColor(Color.GREEN);
@@ -298,7 +298,8 @@ public class TestMap extends JPanel {
 			for (int j = 0; j < map.getMapState().getCol(); j++) {
 				Brick curBrick = this.map.getMapState().getBricks()[i * map.getMapState().getCol() + j];
 				if (curBrick.getIsDisplay()) {
-					g.setColor(Color.YELLOW);
+					if (curBrick.getType() != Consts.NORMAL) g.setColor(Color.RED);
+					else g.setColor(Color.YELLOW);
 					g.fillRect(curBrick.getX(), curBrick.getY(), Consts.BRICK_WIDTH, Consts.BRICK_HEIGHT);
 				}
 			}

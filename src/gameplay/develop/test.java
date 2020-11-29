@@ -8,6 +8,10 @@ package gameplay.develop;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import jdk.internal.util.xml.impl.Pair;
 
 /**
@@ -16,23 +20,9 @@ import jdk.internal.util.xml.impl.Pair;
  */
 public class test {
 	public static void main(String[] args) {
-		int row=16, col=21;
-		
-		// Add Random EnhanceItem
-		Random rand = new Random();
-		HashSet<Integer> brick_indexs = new HashSet<Integer>();
-		int totalItem = (int)(row*col*0.05);
-		int item_counter = 0;
-		while (totalItem > item_counter){
-			int index = rand.nextInt(row*col);
-			System.out.println("Generate random number: " + index);
-			while (brick_indexs.add(index)){
-				index = rand.nextInt(row*col);
-				System.out.println("Generate random number: " + index);
-			}
-			item_counter++;
-		}
-		display(brick_indexs);
+		JPanel jpanel = new JPanel();
+		jpanel.add(new JButton("Click me"));
+		JOptionPane.showMessageDialog(null, jpanel);
 	}
 	
 	public static void display(HashSet<Integer> hashset) {

@@ -5,11 +5,12 @@
  */
 package client.view;
 
+import client.view.component.CustomMessageDialog;
 import consts.Consts;
+import java.awt.Color;
 import java.awt.Image;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -17,10 +18,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
+import javax.swing.JButton;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import map.Map;
 import model.ClientState;
 import model.Room;
 import model.SocketIO;
@@ -30,7 +30,6 @@ import model.SocketIO;
  * @author tienanh
  */
 public class LAN extends javax.swing.JFrame {
-
 	private ClientState player;
 	private ArrayList<Room> listRoomWaiting;
 	private Room selectedRoom;
@@ -43,14 +42,25 @@ public class LAN extends javax.swing.JFrame {
 		this.socketIO = socketIO;
 		this.isRegisterName = isRegisterName;
 		initComponents();
+		this.setTranparencyEffect();
 		initMapData();
+	}
+	
+	public void setTranparencyEffect () {
+		// Set Background tranparency
+		jPanel1.setBackground(new Color(254, 254, 254, 20));
+		jPanel2.setBackground(new Color(254, 254, 254, 20));
+		jPanel3.setBackground(new Color(254, 254, 254, 20));
+		jPanel4.setBackground(new Color(254, 254, 254, 20));
+		
+		imagePreview.setBackground(new Color(254, 254, 254, 30));
+		jScrollPane2.setBackground(new Color(254, 254, 254, 30));		
 	}
 
 	public void initMapData() {
 		listMapStr = new DefaultListModel();
 		getListRoom();
 		this.registerMapListEvent();
-		jlistRoomWaiting.setModel(listMapStr);
 		if (isRegisterName) {
 			this.tfPlayerName.setText(player.getName());
 		}
@@ -60,10 +70,12 @@ public class LAN extends javax.swing.JFrame {
 		try {
 			socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
 			listRoomWaiting = (ArrayList<Room>) socketIO.getInput().readObject();
+			listMapStr.removeAllElements();
 			for (Room room : listRoomWaiting) {
 				String lastRoomName = room.getName() + " (" + (room.getP2() != null && room.getP2().getName() != null ? 2 : 1) + "/2)";
 				listMapStr.addElement(lastRoomName);
 			}
+			jlistRoomWaiting.setModel(listMapStr);
 		} catch (IOException ex) {
 			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
 		} catch (ClassNotFoundException ex) {
@@ -89,6 +101,7 @@ public class LAN extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jlistRoomWaiting = new javax.swing.JList<>();
+        jButton5 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -106,7 +119,8 @@ public class LAN extends javax.swing.JFrame {
         jButton4 = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
-        exitBtn = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        lbBackGround = new javax.swing.JLabel();
 
         jFileChooseSaveFile.setCurrentDirectory(new java.io.File("/home/tienanh/NetBeansProjects/BrickBreakerV2.0/src/data/save"));
         jFileChooseSaveFile.addActionListener(new java.awt.event.ActionListener() {
@@ -118,17 +132,25 @@ public class LAN extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel5.setBackground(new java.awt.Color(186, 186, 186));
+        jPanel5.setMaximumSize(new java.awt.Dimension(1200, 800));
+        jPanel5.setMinimumSize(new java.awt.Dimension(1200, 800));
+        jPanel5.setPreferredSize(new java.awt.Dimension(1200, 800));
+        jPanel5.setLayout(null);
 
         jPanel1.setBackground(new java.awt.Color(167, 166, 165));
         jPanel1.setToolTipText("");
 
-        jLabel2.setFont(new java.awt.Font("Ubuntu", 1, 18)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("LifeCraft", 1, 36)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(254, 254, 254));
         jLabel2.setText("Local Network Games");
 
-        jLabel3.setForeground(new java.awt.Color(254, 254, 254));
+        jLabel3.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(236, 202, 47));
         jLabel3.setText("Player Name");
 
+        tfPlayerName.setBackground(new java.awt.Color(0, 0, 0));
+        tfPlayerName.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        tfPlayerName.setForeground(new java.awt.Color(254, 254, 254));
         tfPlayerName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tfPlayerNameActionPerformed(evt);
@@ -146,10 +168,35 @@ public class LAN extends javax.swing.JFrame {
             }
         });
 
+        jLabel4.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(236, 202, 47));
         jLabel4.setText("Games");
 
-        jlistRoomWaiting.setBackground(new java.awt.Color(117, 117, 117));
+        jScrollPane1.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+
+        jlistRoomWaiting.setBackground(new java.awt.Color(1, 1, 1));
+        jlistRoomWaiting.setBorder(javax.swing.BorderFactory.createMatteBorder(1, 1, 1, 1, new java.awt.Color(254, 254, 254)));
+        jlistRoomWaiting.setFont(new java.awt.Font("LifeCraft", 3, 24)); // NOI18N
+        jlistRoomWaiting.setForeground(new java.awt.Color(254, 254, 254));
+        jlistRoomWaiting.setSelectionBackground(new java.awt.Color(149, 149, 149));
         jScrollPane1.setViewportView(jlistRoomWaiting);
+
+        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/data/image/restart-icon_25x25.png"))); // NOI18N
+        jButton5.setToolTipText("Refresh Games");
+        jButton5.setBorderPainted(false);
+        jButton5.setContentAreaFilled(false);
+        jButton5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton5.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButton5.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton5MouseEntered(evt);
+            }
+        });
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -162,6 +209,8 @@ public class LAN extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE))
                             .addComponent(tfPlayerName)
                             .addComponent(jScrollPane1))
@@ -170,48 +219,84 @@ public class LAN extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
                             .addComponent(jLabel3))
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addGap(0, 424, Short.MAX_VALUE))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(24, 24, 24)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tfPlayerName, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel4)
+                    .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 512, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 441, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(50, 50, 50))
         );
+
+        jPanel5.add(jPanel1);
+        jPanel1.setBounds(12, 12, 743, 640);
 
         jPanel2.setBackground(new java.awt.Color(226, 199, 172));
 
+        jLabel6.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(236, 202, 47));
         jLabel6.setText("Map Name:");
 
+        jLabel7.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(236, 202, 47));
         jLabel7.setText("Room Creator:");
 
+        jLabel8.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        jLabel8.setForeground(new java.awt.Color(236, 202, 47));
         jLabel8.setText("GameSpeed:");
 
         tfRoomName.setEditable(false);
-        tfRoomName.setOpaque(false);
+        tfRoomName.setBackground(new java.awt.Color(1, 1, 1));
+        tfRoomName.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        tfRoomName.setForeground(new java.awt.Color(254, 254, 254));
+        tfRoomName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tfRoomNameActionPerformed(evt);
+            }
+        });
 
         tfRoomCreator.setEditable(false);
+        tfRoomCreator.setBackground(new java.awt.Color(1, 1, 1));
+        tfRoomCreator.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        tfRoomCreator.setForeground(new java.awt.Color(254, 254, 254));
 
         tfRoomSpeed.setEditable(false);
+        tfRoomSpeed.setBackground(new java.awt.Color(1, 1, 1));
+        tfRoomSpeed.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        tfRoomSpeed.setForeground(new java.awt.Color(254, 254, 254));
         tfRoomSpeed.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tfRoomSpeedActionPerformed(evt);
             }
         });
 
+        imagePreview.setBackground(new java.awt.Color(108, 108, 108));
+        imagePreview.setOpaque(true);
+
+        jLabel10.setFont(new java.awt.Font("LifeCraft", 0, 18)); // NOI18N
+        jLabel10.setForeground(new java.awt.Color(236, 202, 47));
         jLabel10.setText("Description:");
 
+        jScrollPane2.setOpaque(false);
+
+        tfRoomDes.setEditable(false);
+        tfRoomDes.setBackground(new java.awt.Color(1, 1, 1));
         tfRoomDes.setColumns(20);
+        tfRoomDes.setForeground(new java.awt.Color(254, 254, 254));
+        tfRoomDes.setLineWrap(true);
         tfRoomDes.setRows(5);
+        tfRoomDes.setOpaque(false);
         jScrollPane2.setViewportView(tfRoomDes);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -221,7 +306,7 @@ public class LAN extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
                     .addComponent(imagePreview, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -230,7 +315,7 @@ public class LAN extends javax.swing.JFrame {
                             .addComponent(jLabel8))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(tfRoomCreator, javax.swing.GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
+                            .addComponent(tfRoomCreator)
                             .addComponent(tfRoomName)
                             .addComponent(tfRoomSpeed, javax.swing.GroupLayout.Alignment.TRAILING)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
@@ -246,35 +331,69 @@ public class LAN extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(tfRoomName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tfRoomName, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
-                    .addComponent(tfRoomCreator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tfRoomCreator, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
-                    .addComponent(tfRoomSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(12, 12, 12)
+                    .addComponent(tfRoomSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel10)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 246, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
+        jPanel5.add(jPanel2);
+        jPanel2.setBounds(768, 12, 420, 640);
+
         jPanel3.setBackground(new java.awt.Color(105, 97, 90));
 
-        jLabel1.setForeground(new java.awt.Color(254, 254, 254));
+        jLabel1.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(236, 202, 47));
         jLabel1.setText("Local Mutiplayer");
 
+        jButton3.setBackground(new java.awt.Color(1, 1, 1));
+        jButton3.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jButton3.setForeground(new java.awt.Color(254, 254, 254));
         jButton3.setText("Load Game");
+        jButton3.setBorder(javax.swing.BorderFactory.createMatteBorder(5, 5, 5, 5, new java.awt.Color(254, 254, 254)));
+        jButton3.setContentAreaFilled(false);
+        jButton3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton3.setOpaque(true);
+        jButton3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jButton3MouseExited(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton3MouseEntered(evt);
+            }
+        });
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
             }
         });
 
+        jButton4.setBackground(new java.awt.Color(1, 1, 1));
+        jButton4.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jButton4.setForeground(new java.awt.Color(254, 254, 254));
         jButton4.setText("Create Game");
+        jButton4.setBorder(javax.swing.BorderFactory.createMatteBorder(5, 5, 5, 5, new java.awt.Color(254, 254, 254)));
+        jButton4.setContentAreaFilled(false);
+        jButton4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton4.setOpaque(true);
+        jButton4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jButton4MouseExited(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton4MouseEntered(evt);
+            }
+        });
         jButton4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton4ActionPerformed(evt);
@@ -286,43 +405,73 @@ public class LAN extends javax.swing.JFrame {
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
+                .addGap(12, 12, 12)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(55, 55, 55)
+                .addGap(66, 66, 66)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 239, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 97, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 115, Short.MAX_VALUE)
                 .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(89, 89, 89))
+                .addGap(57, 57, 57))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(12, 12, 12)
                 .addComponent(jLabel1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(24, 24, 24)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
+
+        jPanel5.add(jPanel3);
+        jPanel3.setBounds(13, 658, 740, 130);
 
         jPanel4.setBackground(new java.awt.Color(224, 159, 94));
 
+        jButton1.setBackground(new java.awt.Color(1, 1, 1));
+        jButton1.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(254, 254, 254));
         jButton1.setText("Join Game");
+        jButton1.setBorder(javax.swing.BorderFactory.createMatteBorder(5, 5, 5, 5, new java.awt.Color(254, 254, 254)));
+        jButton1.setContentAreaFilled(false);
+        jButton1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton1.setOpaque(true);
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jButton1MouseExited(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton1MouseEntered(evt);
+            }
+        });
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
 
-        exitBtn.setText("Cancel");
-        exitBtn.addActionListener(new java.awt.event.ActionListener() {
+        jButton2.setBackground(new java.awt.Color(1, 1, 1));
+        jButton2.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
+        jButton2.setForeground(new java.awt.Color(254, 254, 254));
+        jButton2.setText("Cancel");
+        jButton2.setBorder(javax.swing.BorderFactory.createMatteBorder(5, 5, 5, 5, new java.awt.Color(254, 254, 254)));
+        jButton2.setContentAreaFilled(false);
+        jButton2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton2.setOpaque(true);
+        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jButton2MouseExited(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton2MouseEntered(evt);
+            }
+        });
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exitBtnActionPerformed(evt);
+                jButton2ActionPerformed(evt);
             }
         });
 
@@ -333,8 +482,8 @@ public class LAN extends javax.swing.JFrame {
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(exitBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 330, Short.MAX_VALUE))
+                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -342,39 +491,19 @@ public class LAN extends javax.swing.JFrame {
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(exitBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 42, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-        );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
-        );
+        jPanel5.add(jPanel4);
+        jPanel4.setBounds(770, 658, 420, 130);
+
+        lbBackGround.setIcon(new javax.swing.ImageIcon(getClass().getResource("/data/image/bacground_1200x800.jpeg"))); // NOI18N
+        lbBackGround.setText("jLabel5");
+        lbBackGround.setDisplayedMnemonicIndex(1);
+        jPanel5.add(lbBackGround);
+        lbBackGround.setBounds(0, -30, 1200, 860);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -397,16 +526,16 @@ public class LAN extends javax.swing.JFrame {
 
 			// validate
 			if (roomName == null) {
-				JOptionPane.showMessageDialog(null, "No Room Selected!!!");
+				new CustomMessageDialog().showMessage("No Room Selected!!!");
 				return;
 			}
 			if (tfPlayerName.getText().isEmpty()) {
-				JOptionPane.showMessageDialog(null, "No Name Provived!!!");
+				new CustomMessageDialog().showMessage("No Name Provived!!!");
 				return;
 			}
 
 			if (selectedRoom.getP2() != null && selectedRoom.getP2().getName() != null) {
-				JOptionPane.showMessageDialog(null, "This Room Reach Maximum!!!");
+				new CustomMessageDialog().showMessage("This Room Reach Maximum!!!");
 				return;
 			}
 
@@ -424,7 +553,7 @@ public class LAN extends javax.swing.JFrame {
 
 			// Check if room is exist
 			if (status == Consts.ROOM_NOT_EXISTS) {
-				JOptionPane.showMessageDialog(null, "Room not exsits");
+				new CustomMessageDialog().showMessage("Room not exsits");
 				DefaultListModel newListMap = new DefaultListModel();
 
 				socketIO.getOutput().writeObject(Consts.GET_LIST_ROOM);
@@ -446,7 +575,7 @@ public class LAN extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void exitBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitBtnActionPerformed
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 		try {
 			this.dispose();
 			this.socketIO.getSocket().close();
@@ -454,12 +583,12 @@ public class LAN extends javax.swing.JFrame {
 		} catch (IOException ex) {
 			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
 		}
-    }//GEN-LAST:event_exitBtnActionPerformed
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
 		try {
 			if (tfPlayerName.getText().isEmpty()) {
-				JOptionPane.showMessageDialog(null, "No Name Provived!!!");
+				new CustomMessageDialog().showMessage("No Name Provived!!!");
 				return;
 			}
 			if (!isRegisterName || !tfPlayerName.getText().trim().toLowerCase().equals(player.getName())) {
@@ -467,7 +596,7 @@ public class LAN extends javax.swing.JFrame {
 				socketIO.getOutput().writeObject(tfPlayerName.getText());
 				boolean isValidName = (boolean) socketIO.getInput().readObject();
 				if (!isValidName) {
-					JOptionPane.showMessageDialog(null, "Name is Registered");
+					new CustomMessageDialog().showMessage("Name is registered");
 					return;
 				}
 				isRegisterName = true;
@@ -483,7 +612,7 @@ public class LAN extends javax.swing.JFrame {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
 		try {
 			if (tfPlayerName.getText().isEmpty()) {
-				JOptionPane.showMessageDialog(null, "Name is required");
+				new CustomMessageDialog().showMessage("Name is required");
 				return;
 			}
 			if (!registerName()) {
@@ -492,6 +621,8 @@ public class LAN extends javax.swing.JFrame {
 			
 			jFileChooseSaveFile.showOpenDialog(null);
 			File saveFile = jFileChooseSaveFile.getSelectedFile();
+			if (saveFile == null) return;
+			
 			ObjectInputStream input = new ObjectInputStream(new FileInputStream(saveFile));
 			// Read Object from FILE ( NOT SOCKET !!! )
 			Room saveRoom = (Room) input.readObject();
@@ -532,7 +663,7 @@ public class LAN extends javax.swing.JFrame {
 				socketIO.getOutput().writeObject(tfPlayerName.getText());
 				boolean isValidName = (boolean) socketIO.getInput().readObject();
 				if (!isValidName) {
-					JOptionPane.showMessageDialog(null, "Name is registered");
+					new CustomMessageDialog().showMessage("Name is registered");
 					return false;
 				}
 				isRegisterName = true;
@@ -544,7 +675,7 @@ public class LAN extends javax.swing.JFrame {
 				socketIO.getOutput().writeObject(tfPlayerName.getText());
 				boolean isValidName = (boolean) socketIO.getInput().readObject();
 				if (!isValidName) {
-					JOptionPane.showMessageDialog(null, "Name is registered");
+					new CustomMessageDialog().showMessage("Name is registered");
 					return false;
 				}
 				this.player.setName(tfPlayerName.getName());
@@ -587,6 +718,51 @@ public class LAN extends javax.swing.JFrame {
 		// TODO add your handling code here:
     }//GEN-LAST:event_jFileChooseSaveFileActionPerformed
 
+    private void jButton3MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseEntered
+		addHoverEffect(jButton3);
+    }//GEN-LAST:event_jButton3MouseEntered
+
+    private void jButton4MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton4MouseEntered
+        addHoverEffect(jButton4);
+    }//GEN-LAST:event_jButton4MouseEntered
+
+    private void jButton1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseEntered
+        addHoverEffect(jButton1);
+    }//GEN-LAST:event_jButton1MouseEntered
+
+    private void jButton2MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseEntered
+        addHoverEffect(jButton2);
+    }//GEN-LAST:event_jButton2MouseEntered
+
+    private void jButton3MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseExited
+        removeHoverEffect(jButton3);
+    }//GEN-LAST:event_jButton3MouseExited
+
+    private void jButton4MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton4MouseExited
+        removeHoverEffect(jButton4);
+    }//GEN-LAST:event_jButton4MouseExited
+
+    private void jButton1MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseExited
+        removeHoverEffect(jButton1);
+    }//GEN-LAST:event_jButton1MouseExited
+
+    private void jButton2MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseExited
+        removeHoverEffect(jButton2);
+    }//GEN-LAST:event_jButton2MouseExited
+
+    private void tfRoomNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tfRoomNameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tfRoomNameActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+		getListRoom();
+		repaint();
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton5MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton5MouseEntered
+		repaint();
+    }//GEN-LAST:event_jButton5MouseEntered
+
 	private void registerMapListEvent() {
 		jlistRoomWaiting.addListSelectionListener(new ListSelectionListener() {
 			@Override
@@ -619,13 +795,24 @@ public class LAN extends javax.swing.JFrame {
 		}
 		return null;
 	}
+	
+	public void addHoverEffect (JButton jButton) {
+		jButton.setForeground(new Color(0, 0, 0));
+		jButton.setBackground(new Color(254, 254, 254));
+	}
+	
+	public void removeHoverEffect (JButton jButton) {
+		jButton.setForeground(new java.awt.Color(254, 254, 254));
+		jButton.setBackground(new Color(0, 0, 0));
+	}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton exitBtn;
     private javax.swing.JLabel imagePreview;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JFileChooser jFileChooseSaveFile;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -643,6 +830,7 @@ public class LAN extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JList<String> jlistRoomWaiting;
+    private javax.swing.JLabel lbBackGround;
     private javax.swing.JTextField tfPlayerName;
     private javax.swing.JTextField tfRoomCreator;
     private javax.swing.JTextArea tfRoomDes;

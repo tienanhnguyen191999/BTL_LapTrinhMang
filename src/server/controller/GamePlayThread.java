@@ -159,18 +159,20 @@ public class GamePlayThread extends Thread {
 				player.getClientState().getBall().setX(player.getClientState().getBall().getX() + player.getClientState().getBall().getSpeedX());
 				player.getClientState().getBall().setY(player.getClientState().getBall().getY() + player.getClientState().getBall().getSpeedY());
 			}
-			break;
+//			break;
 		}
 	}
 
 	public void updateEnhanceItemTimeRemaining() {
 		for (ClientThread player : arr_player) {
-			for (int i = 0; i < player.getClientState().getEnhanceItems().size(); i++) {
-				EnhanceItem item = player.getClientState().getEnhanceItems().get(i);
-				item.setRemainingTime(item.getRemainingTime() - delayTime);
-				if (item.getRemainingTime() < 0) {
-					player.getClientState().getEnhanceItems().remove(i);
-					removeEffect(player);
+			if (player.getClientState().getEnhanceItems() != null) {
+				for (int i = 0; i < player.getClientState().getEnhanceItems().size(); i++) {
+					EnhanceItem item = player.getClientState().getEnhanceItems().get(i);
+					item.setRemainingTime(item.getRemainingTime() - delayTime);
+					if (item.getRemainingTime() < 0) {
+						player.getClientState().getEnhanceItems().remove(i);
+						removeEffect(player);
+					}
 				}
 			}
 		}
@@ -178,9 +180,11 @@ public class GamePlayThread extends Thread {
 
 	public void removeEffect(ClientThread player) {
 		player.getClientState().getBar().setWidth(Consts.BAR_WIDTH);
-		player.getClientState().getBall().setRadius(Consts.BALL_RADIUS);
-		player.getClientState().getBall().setPowerBall(false);
-		player.getClientState().getBall().setX2Point(false);
+		if (player.getClientState().getBall() != null) {
+			player.getClientState().getBall().setRadius(Consts.BALL_RADIUS);
+			player.getClientState().getBall().setPowerBall(false);
+			player.getClientState().getBall().setX2Point(false);
+		}
 	}
 
 	public void checkGameOver() {
@@ -265,22 +269,24 @@ public class GamePlayThread extends Thread {
 
 	public void updateEnhanceItemEffectToPlayer() {
 		for (ClientThread player : arr_player) {
-
+			if (player.getClientState().getEnhanceItems() == null) continue;
 			for (int i = 0; i < player.getClientState().getEnhanceItems().size(); i++) {
 				EnhanceItem item = player.getClientState().getEnhanceItems().get(i);
-				switch (item.getType()) {
-					case Consts.ENHANCE_ITEM_BIG_BALL:
-						player.getClientState().getBall().setRadius(Consts.BALL_RADIUS * 2);
-						break;
-					case Consts.ENHANCE_ITEM_LENTHEN_BAR:
-						player.getClientState().getBar().setWidth(Consts.BAR_WIDTH * 2);
-						break;
-					case Consts.ENHANCE_ITEM_POWER_BALL:
-						player.getClientState().getBall().setPowerBall(true);
-						break;
-					case Consts.ENHANCE_ITEM_X2_POINT:
-						player.getClientState().getBall().setX2Point(true);
-						break;
+				if (player.getClientState().getBall() != null) {
+					switch (item.getType()) {
+						case Consts.ENHANCE_ITEM_BIG_BALL:
+							player.getClientState().getBall().setRadius(Consts.BALL_RADIUS * 2);
+							break;
+						case Consts.ENHANCE_ITEM_LENTHEN_BAR:
+							player.getClientState().getBar().setWidth(Consts.BAR_WIDTH * 2);
+							break;
+						case Consts.ENHANCE_ITEM_POWER_BALL:
+							player.getClientState().getBall().setPowerBall(true);
+							break;
+						case Consts.ENHANCE_ITEM_X2_POINT:
+							player.getClientState().getBall().setX2Point(true);
+							break;
+					}
 				}
 			}
 		}
@@ -332,7 +338,7 @@ public class GamePlayThread extends Thread {
 							break;
 					}
 				} else {
-					if (intersectSide == -1){
+					if (intersectSide == -1) {
 						isTouchBrick = false;
 					}
 				}
@@ -374,7 +380,7 @@ public class GamePlayThread extends Thread {
 					// Fix above this line
 
 					arr_player.get(0).getClientState().getEnhanceItems().add(item);
-					item.setRemainingTime(5010); // Set power-up last for 5s
+					item.setRemainingTime(Consts.ENHANCE_ITEM_LAST); // Set power-up last for ENHANCE_ITEM_LAST s
 					map.getMapState().getEnhanceItems().remove(i);
 				}
 			} else {
@@ -392,7 +398,7 @@ public class GamePlayThread extends Thread {
 					// Fix above this line
 
 					arr_player.get(1).getClientState().getEnhanceItems().add(item);
-					item.setRemainingTime(5010); // Set power-up last for 5s
+					item.setRemainingTime(Consts.ENHANCE_ITEM_LAST); // Set power-up last for ENHANCE_ITEM_LAST s
 					map.getMapState().getEnhanceItems().remove(i);
 				}
 			}
@@ -451,8 +457,13 @@ public class GamePlayThread extends Thread {
 				this.arr_player.get(1).getClientState().setBall(ball);
 				this.arr_player.get(1).getClientState().getBall().setColor(Color.GREEN);
 				this.arr_player.get(1).getClientState().getBall().setSpeedY(this.arr_player.get(1).getClientState().getBall().getSpeedY() * -1);
+				// Steal enhaceItem ( ͡° ͜ʖ ͡°)
+				this.arr_player.get(1).getClientState().setEnhanceItems(this.arr_player.get(0).getClientState().getEnhanceItems());
+				this.arr_player.get(0).getClientState().setEnhanceItems(null);
 				// Disable p1's ball
 				this.arr_player.get(0).getClientState().setBall(null);
+				// Remove EnhaceItem Effect
+				removeEffect(this.arr_player.get(0));
 			}
 		} else {
 			if (ball.getY() + ball.getRadius() > bar_p1.getY() && ball.getX() > bar_p1.getX() && ball.getX() < bar_p1.getX() + bar_p1.getWidth() && ball.getSpeedY() > 0) {
@@ -460,8 +471,13 @@ public class GamePlayThread extends Thread {
 				this.arr_player.get(0).getClientState().setBall(ball);
 				this.arr_player.get(0).getClientState().getBall().setColor(Color.BLUE);
 				this.arr_player.get(0).getClientState().getBall().setSpeedY(this.arr_player.get(0).getClientState().getBall().getSpeedY() * -1);
+				// Steal enhaceItem ( ͡° ͜ʖ ͡°)
+				this.arr_player.get(0).getClientState().setEnhanceItems(this.arr_player.get(1).getClientState().getEnhanceItems());
+				this.arr_player.get(1).getClientState().setEnhanceItems(null);
 				// Disable p2's ball
 				this.arr_player.get(1).getClientState().setBall(null);
+				// Remove EnhaceItem Effect
+				removeEffect(this.arr_player.get(1));
 			}
 		}
 	}
@@ -516,14 +532,12 @@ public class GamePlayThread extends Thread {
 		}
 	}
 
-	public void pauseGame() {
-		isPlay = false;
-
+	public void setIsPlay(boolean isPlay) {
+		this.isPlay = isPlay;
 	}
 
-	public void playGame() {
-		isPlay = true;
-
+	public boolean getIsPlay() {
+		return this.isPlay;
 	}
 
 	public void setMap(Map map) {
@@ -542,8 +556,8 @@ public class GamePlayThread extends Thread {
 	public void initNewDirectionParis() {
 		int start = 1;
 		// Prepare
-		for (int i = start; i <= speed; i++){
-			for (int j = i; j <= speed; j++){
+		for (int i = start; i <= speed; i++) {
+			for (int j = i; j <= speed; j++) {
 				double condition_to_check = speed - Math.sqrt(Math.pow(i, 2) + Math.pow(j, 2));
 				if (condition_to_check <= 1 && condition_to_check <= 0) {
 					directionPairs.add(new Integer[]{i, j});
