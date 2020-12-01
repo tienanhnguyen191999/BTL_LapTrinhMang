@@ -73,7 +73,6 @@ public class CustomInputDialog extends javax.swing.JDialog {
 
         jTextField1.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
         jTextField1.setForeground(new java.awt.Color(1, 1, 1));
-        jTextField1.setText("192.168.1.24");
         jTextField1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextField1ActionPerformed(evt);

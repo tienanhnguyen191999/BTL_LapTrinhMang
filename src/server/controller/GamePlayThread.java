@@ -540,6 +540,10 @@ public class GamePlayThread extends Thread {
 		return this.isPlay;
 	}
 
+	public void stopGame() {
+		timer.stop();
+	}
+	
 	public void setMap(Map map) {
 		this.map = map;
 	}

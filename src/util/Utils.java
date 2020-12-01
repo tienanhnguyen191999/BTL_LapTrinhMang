@@ -6,7 +6,6 @@
 package util;
 
 import client.view.Game;
-import gameplay.develop.test;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -71,9 +70,9 @@ public class Utils {
 			String ip = socket.getLocalAddress().getHostAddress();
 			return ip;
 		} catch (SocketException ex) {
-			Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
 		} catch (UnknownHostException ex) {
-			Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
 		}
 		return "";
 	}
