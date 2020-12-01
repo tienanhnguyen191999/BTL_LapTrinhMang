@@ -15,12 +15,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 import model.ClientState;
 import model.IP;
@@ -220,7 +215,7 @@ public class Game extends javax.swing.JFrame {
         jLabel1.setForeground(new java.awt.Color(254, 226, 226));
         jLabel1.setText("BricK Breaker ");
         jPanel3.add(jLabel1);
-        jLabel1.setBounds(300, 70, 580, 90);
+        jLabel1.setBounds(270, 70, 880, 90);
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/data/image/bacground_1200x800.jpeg"))); // NOI18N
         jLabel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));

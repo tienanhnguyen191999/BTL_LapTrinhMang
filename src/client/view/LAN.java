@@ -659,6 +659,14 @@ public class LAN extends javax.swing.JFrame {
 			
 			// Update Room Info
 			saveRoom.getMap().getMapInfo().setImagePreviewPath(imagePreview);
+			
+			// Set image for room
+			ImageIcon icon = new ImageIcon(getClass().getResource(imagePreview));
+			Image resize = icon.getImage().getScaledInstance(this.imagePreview.getWidth(), this.imagePreview.getHeight(), Image.SCALE_SMOOTH);
+			ImageIcon result = new ImageIcon(resize);
+			saveRoom.setPreviewForSaveGame(result);
+			// End set image
+			
 			saveRoom.setName(roomName);
 			saveRoom.getP1().setName(player.getName());
 			// Set P2 to Null ( for wating purpose _ State of p2 is send to server to handle )
@@ -711,7 +719,6 @@ public class LAN extends javax.swing.JFrame {
 	}
 
 	private String getPreviewImagePathFromSaveFile(String fileName) {
-		System.out.println(fileName);
 		int index = Integer.parseInt(fileName.split("-")[1].split("\\.")[0]);
 		return "/data/save/image/preview-" + index + ".png";
 	}
@@ -794,9 +801,14 @@ public class LAN extends javax.swing.JFrame {
 						String roomName = jlistRoomWaiting.getSelectedValue().trim().split(" ")[0];
 						selectedRoom = getRoomByName(roomName);
 
-						ImageIcon icon = new ImageIcon(getClass().getResource(selectedRoom.getMap().getMapInfo().getImagePreviewPath()));
-						Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
-						ImageIcon result = new ImageIcon(resize);
+						ImageIcon result = null;
+						if (selectedRoom.getStatus() != Consts.LOADED_ROOM) {
+							ImageIcon icon = new ImageIcon(getClass().getResource(selectedRoom.getMap().getMapInfo().getImagePreviewPath()));
+							Image resize = icon.getImage().getScaledInstance(imagePreview.getWidth(), imagePreview.getHeight(), Image.SCALE_SMOOTH);
+							result = new ImageIcon(resize);
+						} else {
+							result = selectedRoom.getPreviewForSaveGame();
+						}						
 						imagePreview.setIcon(result);
 
 						tfRoomCreator.setText(selectedRoom.getP1().getName());
