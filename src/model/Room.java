@@ -6,6 +6,7 @@
 package model;
 
 import java.io.Serializable;
+import javax.swing.ImageIcon;
 import map.Map;
 
 /**
@@ -18,12 +19,21 @@ public class Room implements Serializable{
     private int speed;
 	private ClientState p1, p2;
     private Integer status; // [Waiting, Load, NotPlay]
+	private ImageIcon previewForSaveGame;
 	private Integer gameMode;
 
 	public Integer getGameMode() {
 		return gameMode;
 	}
 
+	public ImageIcon getPreviewForSaveGame() {
+		return previewForSaveGame;
+	}
+
+	public void setPreviewForSaveGame(ImageIcon previewForSaveGame) {
+		this.previewForSaveGame = previewForSaveGame;
+	}
+	
 	public void setGameMode(Integer gameMode) {
 		this.gameMode = gameMode;
 	}
