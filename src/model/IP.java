@@ -27,7 +27,7 @@ public class IP {
 	}
 	
 	public boolean validate () {
-		String IP_PATTERN = "^\\d{3}\\.\\d{3}\\.\\d{1,3}\\.\\d{1,3}$";
+		String IP_PATTERN = "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$";
 		return Pattern.matches(IP_PATTERN, this.ip);
 	}
 }
