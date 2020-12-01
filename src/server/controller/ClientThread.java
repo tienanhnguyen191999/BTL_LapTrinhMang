@@ -137,6 +137,7 @@ public class ClientThread extends Thread implements Serializable{
 	public void removePlayerFromListPLayer () {
 		int index = 0;
 		for (String clientName : listPlayer){
+			if ( clientName == null || this.getClientState() == null) continue;
 			if (clientName.toLowerCase().trim().equals(this.getClientState().getName().toLowerCase().trim())){
 				listPlayer.remove(index);
 				return;

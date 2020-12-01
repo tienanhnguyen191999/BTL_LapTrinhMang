@@ -247,10 +247,10 @@ public class GamePlay extends JPanel{
 		}
         
         
-		// Pause BTN 
-		g.setColor(Color.RED);
-		g.drawRect(Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT - 70, 150, 50);
-		g.drawString(isPause ? "Play" : "Pause", Consts.GAMPLAY_WIDTH + 20 + 45, Consts.GAMPLAY_HEIGHT - 70 + 32);
+//		// Pause BTN 
+//		g.setColor(Color.RED);
+//		g.drawRect(Consts.GAMPLAY_WIDTH + 20, Consts.GAMPLAY_HEIGHT - 70, 150, 50);
+//		g.drawString(isPause ? "Play" : "Pause", Consts.GAMPLAY_WIDTH + 20 + 45, Consts.GAMPLAY_HEIGHT - 70 + 32);
 
 		// Exit BTN 
 		g.setColor(Color.RED);
@@ -266,8 +266,9 @@ public class GamePlay extends JPanel{
 	}
 	
 	// Listen on server send data
-		public void play () {
-		while (true){
+	public void play () {
+		boolean isSocketClose = isHost ? p1.isSocketClose : p2.isSocketClose;
+		while (!isSocketClose){
 			try {
 				Integer actionCode = (Integer) socketIO.getInput().readObject();
 				switch (actionCode){
@@ -297,7 +298,10 @@ public class GamePlay extends JPanel{
 						break;
 				}
 			} catch (IOException ex) {
-                Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("Socket [ "+ Thread.currentThread().getName() +" ] Closed");
+                if (isHost) this.p1.isSocketClose = true;
+				else this.p2.isSocketClose = true;
+				return;
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(GamePlay.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -421,7 +425,8 @@ public class GamePlay extends JPanel{
                             socketIO.getOutput().writeObject(fileName);                            
                         }
 						// Pause BTN 
-                        else if (me.getX() >= Consts.GAMPLAY_WIDTH + 20 && me.getX() <= Consts.GAMPLAY_WIDTH + 20 + 150 &&
+						// Disabled. Not fix yet
+                        else if (false && me.getX() >= Consts.GAMPLAY_WIDTH + 20 && me.getX() <= Consts.GAMPLAY_WIDTH + 20 + 150 &&
 							me.getY() >= Consts.GAMPLAY_HEIGHT - 70 && me.getY() <= Consts.GAMPLAY_HEIGHT - 70 + 50){
 							if (!isPause) {
 								isPause = true;
@@ -435,9 +440,7 @@ public class GamePlay extends JPanel{
 							me.getY() >= Consts.GAMPLAY_HEIGHT - 70 && me.getY() <= Consts.GAMPLAY_HEIGHT - 70 + 50) {
 							JFrame parent = (JFrame)self.getTopLevelAncestor();
 							parent.dispose();
-							socketIO.getSocket().close();
-							socketIO = null;
-							new Game().setVisible(true);
+							new LAN(socketIO, null, false).setVisible(true);
 						}
 					}
 				} catch (IOException ex) {

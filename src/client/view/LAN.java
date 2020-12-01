@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,9 +43,29 @@ public class LAN extends javax.swing.JFrame {
 		this.player = player;
 		this.socketIO = socketIO;
 		this.isRegisterName = isRegisterName;
+		if (player == null) {
+			// Case out game
+			this.player = new ClientState();
+			this.socketIO = reInitSocket(socketIO.getSocket().getInetAddress().getHostAddress());
+		}
 		initComponents();
 		this.setTranparencyEffect();
 		initMapData();
+	}
+	
+	public SocketIO reInitSocket (String ip) {
+		try {
+			this.socketIO.getSocket().close();
+			SocketIO socketIO = new SocketIO();
+			Socket socket = new Socket(ip, consts.Consts.PORT);
+			socketIO.setSocket(socket);
+			socketIO.setOutput(new ObjectOutputStream(socket.getOutputStream()));
+			socketIO.setInput(new ObjectInputStream(socket.getInputStream()));
+			return socketIO;
+		} catch (IOException ex) {
+			Logger.getLogger(LAN.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		return null;
 	}
 	
 	public void setTranparencyEffect () {
