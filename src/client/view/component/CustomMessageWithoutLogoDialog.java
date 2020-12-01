@@ -35,13 +35,15 @@ public class CustomMessageWithoutLogoDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(400, 200));
-        getContentPane().setLayout(null);
+
+        jPanel1.setLayout(null);
 
         jButton2.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
         jButton2.setForeground(new java.awt.Color(254, 254, 254));
@@ -54,22 +56,33 @@ public class CustomMessageWithoutLogoDialog extends javax.swing.JDialog {
                 jButton2ActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton2);
-        jButton2.setBounds(160, 110, 80, 34);
+        jPanel1.add(jButton2);
+        jButton2.setBounds(160, 110, 80, 35);
 
         jLabel2.setFont(new java.awt.Font("LifeCraft", 0, 24)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(254, 254, 254));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("IP Host");
-        getContentPane().add(jLabel2);
+        jPanel1.add(jLabel2);
         jLabel2.setBounds(40, 50, 330, 40);
 
         jLabel1.setForeground(new java.awt.Color(254, 254, 254));
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/data/image/bacground_1200x800.jpeg"))); // NOI18N
         jLabel1.setText("asddasdas");
         jLabel1.setBorder(javax.swing.BorderFactory.createMatteBorder(10, 10, 10, 10, new java.awt.Color(254, 254, 254)));
-        getContentPane().add(jLabel1);
+        jPanel1.add(jLabel1);
         jLabel1.setBounds(0, 0, 400, 170);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
+        );
 
         pack();
         setLocationRelativeTo(null);
@@ -83,5 +96,6 @@ public class CustomMessageWithoutLogoDialog extends javax.swing.JDialog {
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }
